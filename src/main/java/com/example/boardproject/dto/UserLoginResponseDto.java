@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 public class UserLoginResponseDto {
     //private  User user;//직접 entity를 명시X
 
-    private Long user_id;
+    private Long userId;
 
     private TokenInfo token;
 
@@ -21,8 +21,7 @@ public class UserLoginResponseDto {
             long expiresIn
     ) {
         return new UserLoginResponseDto(
-                //user,
-                user.getUser_id(),  //1.user_id꺼내기
+                user.getUserId(),
 
                 /*액세스 토큰 무거워져서 뻄.
                 userProfile.updateNickname(),      // 2. 닉네임 꺼내오기

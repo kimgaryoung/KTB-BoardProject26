@@ -15,15 +15,14 @@ import java.time.LocalDateTime;
 public class User {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    //PK이고 user_id값 자동으로 채움
     @Column(name = "user_id")
-    private Long user_id;
+    private Long userId;
 
     //제약조건: notnull,글자수 20자이냉
     @Column(nullable = false, length = 20)
     private String password;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, length = 255,unique = true)
     private String email;
 
 

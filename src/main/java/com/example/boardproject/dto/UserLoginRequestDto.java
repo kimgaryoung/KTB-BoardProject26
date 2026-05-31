@@ -3,6 +3,7 @@ package com.example.boardproject.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -10,6 +11,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 @Getter
+@Setter
 @NoArgsConstructor // Jackson이 JSON → 객체 변환할 때 기본 생성자 필요
 public class UserLoginRequestDto {
 

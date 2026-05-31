@@ -34,12 +34,18 @@ public class UserService {
     public void signup(UserSignRequestDto signupRequest) {
 
         // 1. User 저장
+
+        // 중복처리
+        if (userRepository.existsByEmail(signupRequest.getEmail())) {
+            throw new IllegalArgumentException("이미 사용중인 이메일입니다.");
+        }
+
         User user = new User(signupRequest.getEmail(), signupRequest.getPassword());
         userRepository.save(user);
 
         // 2. UserProfile 저장 - 닉네임, 프로필 사진
         UserProfile userProfile = new UserProfile(
-                user.getUser_id(),
+                user.getUserId(),
                 signupRequest.getNickname(),
                 signupRequest.getProfileImage()
         );
@@ -61,16 +67,16 @@ public class UserService {
 
         /*
         // 3. 닉네임, 프로필 사진 가져오기
-        UserProfile userProfile = userRepository.findById(user.getUser_id())
+        UserProfile userProfile = userRepository.findById(user.getUserId())
                 .orElseThrow(() -> new AuthorizedException("INVALID_CREDENTIALS"));
 
          */
 
         // 4. accessToken 발급
-        String accessToken = jwtProvider.createAccessToken(user.getUser_id());
+        String accessToken = jwtProvider.createAccessToken(user.getUserId());
 
         // 5. refreshToken 발급 - User 테이블에 저장
-        String refreshToken = jwtProvider.createRefreshToken(user.getUser_id());
+        String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
         user.updatetoken(refreshToken,LocalDateTime.now().plusDays(1)); // 만료시간 24시간
         userRepository.save(user);
 
@@ -95,14 +101,14 @@ public class UserService {
 
         /*
         // 3. 닉네임, 프로필 사진 가져오기
-        UserProfile userProfile = userRepository.findById(user.getUser_id())
+        UserProfile userProfile = userRepository.findById(user.getUserId())
                 .orElseThrow(() -> new AuthorizedException("UNAUTHORIZED"));
 
          */
 
         // 4. 새 accessToken 발급
         String newAccessToken = jwtProvider.createAccessToken(
-                user.getUser_id()
+                user.getUserId()
                 /*
                 userProfile.getNickname(),
                 userProfile.getProfileImage()
@@ -111,7 +117,7 @@ public class UserService {
         );
 
         // 5. RTR - 새 refreshToken 발급 후 User 테이블 업데이트
-        String newRefreshToken = jwtProvider.createRefreshToken(user.getUser_id());
+        String newRefreshToken = jwtProvider.createRefreshToken(user.getUserId());
         user.updatetoken(newRefreshToken, LocalDateTime.now().plusDays(1));//plusDays
         userRepository.save(user);
 

@@ -13,7 +13,8 @@ public class UserProfile {
 
     // USER 테이블의 user_id와 같은 값 (PK,FK)
     @Id
-    private Long user_id;
+    @Column(name = "user_id")
+    private Long userId;
 
     //제약조건  NOT NULL, 최대 10자
     @Column(nullable = false, length = 10)
@@ -23,9 +24,9 @@ public class UserProfile {
     private String profileImage;
 
 
-    //생성자: 회원가입할떄 필수-(emil,pw는 USER에 있음.), user_id 자동생성 안됨.
-    public UserProfile( Long user_id ,String nickname, String profileImage) {
-        this.user_id=user_id;
+    //생성자: 회원가입할떄 필수-(emil,pw는 USER에 있음), userId 자동생성 안됨.
+    public UserProfile(Long userId, String nickname, String profileImage) {
+        this.userId = userId;
         this.nickname = nickname;
         this.profileImage = profileImage;
     }

@@ -17,4 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // 로그인시 -토근 만료되서 재발급할떄 refreshToken으로 찾기
     Optional<User> findByRefreshToken(String refreshToken);
 
+    //이메일 중복 검사
+    boolean existsByEmail(String email);
+
+
 }
