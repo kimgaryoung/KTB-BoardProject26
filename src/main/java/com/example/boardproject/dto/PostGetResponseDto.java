@@ -16,7 +16,6 @@ import java.util.List;
 @Builder
 public class PostGetResponseDto {
 
-    private Long userId;
     private String nickname;
     private String profileImage;
     private Long postId;
@@ -29,7 +28,6 @@ public class PostGetResponseDto {
     //from : 하나, of : 여러개 반화시
     public static PostGetResponseDto of(Post post, UserProfile userProfile) {
         return PostGetResponseDto.builder()
-                .userId(post.getUserId())
                 .nickname(userProfile.getNickname())
                 .profileImage(userProfile.getProfileImage())
                 .postId(post.getPostId())

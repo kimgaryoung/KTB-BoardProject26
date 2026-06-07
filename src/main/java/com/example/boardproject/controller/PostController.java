@@ -57,12 +57,14 @@ public class PostController {
     }
 
     //게시글 상세 조회
-//    @GetMapping("/posts/{postId}")
-//    public ResponseEntity<Result> getPost() {
-//
-//        List<PostResponseDto> response = postService.getPost();
-//        return ResponseEntity.ok(Result.of(response));
-//    }
+    @GetMapping("/posts/{postId}")
+    public ResponseEntity<Result> getPost(@PathVariable("postId") final Long postId) throws Exception {
+
+        PostGetDetailResponseDto response = postService.getPost(postId);
+        return ResponseEntity.ok(Result.of(response));
+    }
+
+
 
 
 

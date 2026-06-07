@@ -94,22 +94,24 @@ public class PostService {
 
     }
 
+    //게시글 상세조회
+
+    @Transactional(readOnly = true)
+    public PostGetDetailResponseDto getPost(final Long postId) throws Exception {
+        Post post = findByPostId(postId);
+        UserProfile userProfile = findByProfileUserId(post.getUserId());
 
 
-    //게시글 상세 조회
-//    @Transactional
-//    public String GetPost(final Long postId, final PostUpdateRequestDto dto, final Long userId) throws Exception {
-//        User user = findByUserId(userId);
-//        Post post = findByPostId(postId);
-//
-//        post.updatePost(
-//                dto.getPostTitle(),
-//                dto.getPostContent(),
-//                dto.getPostImage(),
-//                dto.getPostDate()
-//
-//        );
-//
-//        return "게시글 상세 조회. .";
-//    }
+        return PostGetDetailResponseDto.of(post,userProfile);
+    }
+
+
+    private UserProfile findByProfileUserId(final Long userId) throws Exception {
+        return userProfileRepository.findByUserId(userId);
+    }
+
+
+
+
+
 }

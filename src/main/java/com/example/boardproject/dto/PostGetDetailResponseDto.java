@@ -1,6 +1,7 @@
 package com.example.boardproject.dto;
 
 import com.example.boardproject.entity.Post;
+import com.example.boardproject.entity.UserProfile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +16,6 @@ import java.util.List;
 @Builder
 public class PostGetDetailResponseDto {
 
-    private Long userId;
     private String nickname;
     private String profileImage;
     private Long postId;
@@ -24,18 +24,19 @@ public class PostGetDetailResponseDto {
     private String postImage;
     private LocalDateTime postDate;
 
-//
-//    public static PostGetDetailResponseDto from(Post savedPost) {
-//
-//        return PostGetDetailResponseDto.builder()
-//                .userId(savedPost.getUserId())
-//                .postId(savedPost.getPostId())
-//                .postTitle(savedPost.getPostTitle())
-//                .postContent(savedPost.getPostContent())
-//                .postImage(savedPost.getPostImage())
-//                .postDate(savedPost.getPostDate())
-//                .build();
-//    }
+    //from : 하나, of : 여러개 반화시
+    public static PostGetDetailResponseDto of(Post post, UserProfile userProfile) {
+        return PostGetDetailResponseDto.builder()
+                .nickname(userProfile.getNickname())
+                .profileImage(userProfile.getProfileImage())
+                .postId(post.getPostId())
+                .postImage(post.getPostImage())
+                .postContent(post.getPostContent())
+                .postTitle(post.getPostTitle())
+                .postDate(post.getPostDate())
+                .build();
+    }
+
 //
 //    public static PostGetDetailResponseDto from(Post post) {
 //        return PostGetDetailResponseDto.builder()
