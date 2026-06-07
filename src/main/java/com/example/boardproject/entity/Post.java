@@ -13,17 +13,18 @@ public class Post {
 
     // PK 자동 증가
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long post_id;
+    @Column(name = "post_id")
+    private Long postId;
 
     //제약조건 : NOT NULL
-    @Column(nullable = false)
-    private Long user_id;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     // 제약조건: NOT NULL, 최대 26자
     @Column(nullable = false, length = 26)
     private String postTitle;
 
-
+    //게시글 사진.
     @Column(length = 255)
     private String postImage;
 
@@ -36,17 +37,19 @@ public class Post {
     private LocalDateTime postDate;
 
     // 생성자: 게시글 작성 시 -사용자에게 받는 값 (postDate는 DB가 자동입력),
-    public Post(Long userId, String postTitle, String postImage, String postContent) {
-        this.user_id = userId;
+    public Post(Long userId, String postTitle, String postImage, LocalDateTime postDate , String postContent) {
+        this.userId = userId;
         this.postTitle = postTitle;
         this.postImage = postImage;
+        this.postDate = postDate;
         this.postContent = postContent;
     }
 
     // 게시글 수정 시 호출 - 제목, 이미지, 내용 변경
-    public void updatePost(String postTitle, String postImage, String postContent) {
+    public void updatePost(String postTitle, String postImage, String postContent,LocalDateTime postDate) {
         this.postTitle = postTitle;
         this.postImage = postImage;
         this.postContent = postContent;
+        this.postDate=postDate;
     }
 }

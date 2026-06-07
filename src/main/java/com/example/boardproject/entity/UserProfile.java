@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity // DB 테이블과 매핑
 @Getter  //serice에서 DB데이터 읽을떄
 @NoArgsConstructor//기본생성자 자동생성
@@ -32,6 +34,12 @@ public class UserProfile {
     }
 
 
+    //프로필 변경
+    public void updateFields( String nickname,String profileImage) {
+        updateNickname(nickname);
+        updateProfileImage(profileImage);
+
+    }
 
     //프로필 수정 - 낙내임 변경.
     public void updateNickname(String nickname) {

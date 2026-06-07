@@ -41,6 +41,7 @@ public class UserService {
         }
 
         User user = new User(signupRequest.getEmail(), signupRequest.getPassword());
+        user.updateSigninDate(LocalDateTime.now());
         userRepository.save(user);
 
         // 2. UserProfile 저장 - 닉네임, 프로필 사진
@@ -55,7 +56,7 @@ public class UserService {
 
     // 로그인
     @Transactional
-    public LoginResult login(UserLoginRequestDto loginRequest) {
+    public UserLoginResult login(UserLoginRequestDto loginRequest) {
         // 1. 이메일로 유저 찾기
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new AuthorizedException("INVALID_CREDENTIALS"));
@@ -78,10 +79,13 @@ public class UserService {
         // 5. refreshToken 발급 - User 테이블에 저장
         String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
         user.updatetoken(refreshToken,LocalDateTime.now().plusDays(1)); // 만료시간 24시간
+
+        //로그인 시간 추가
+        user.updateLoginDate(LocalDateTime.now());
         userRepository.save(user);
 
         // 6. 응답 반환
-        return new LoginResult(
+        return new UserLoginResult(
                 UserLoginResponseDto.of(user, accessToken, jwtProvider.getAccessTokenValidityInMilliseconds()),
                 refreshToken
         );
@@ -127,4 +131,56 @@ public class UserService {
                 newRefreshToken
         );
     }
+
+
+    //유저 정보 수정
+    @Transactional
+    public String updateProfile(final Long userId, final UserProfileRequestDto dto) throws Exception {
+        UserProfile userProfile = findByUserId(userId);
+
+        userProfile.updateFields(
+                dto.getNickName(),
+                dto.getProfileImage()
+        );
+
+        return "정상 반환되었습니다.";
+    }
+
+    //유저 아이디-프로필 변경할때 사용.
+    private UserProfile findByUserId(final Long userId) throws Exception {
+        return userProfileRepository.findByUserId(userId);
+
+    }
+
+    //유저 비밀번호 변경
+    @Transactional
+    public String updatePassword(final Long userId, final UserProfileRequestDto dto) throws Exception {
+        User user = findByUserid(userId);
+
+        user.updateFields(
+                dto.getPassword()
+
+        );
+        return "정상 반환.";
+    }
+
+    //유저 아이디-비밀번호 수정시 사용, 탈퇴시에도 사용.
+    private User findByUserid(final Long userId) throws Exception {
+        return userRepository.findByUserId(userId);
+
+    }
+
+
+    //회원 탈퇴.
+    @Transactional
+    public String deleteUser(final Long userId) throws Exception {
+        User user = findByUserid(userId);
+        userRepository.delete(user);
+
+        return "회원 탈퇴";
+    }
+
+
+
+
 }

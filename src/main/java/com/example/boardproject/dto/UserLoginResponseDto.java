@@ -23,10 +23,7 @@ public class UserLoginResponseDto {
         return new UserLoginResponseDto(
                 user.getUserId(),
 
-                /*액세스 토큰 무거워져서 뻄.
-                userProfile.updateNickname(),      // 2. 닉네임 꺼내오기
-                userProfile.updateProfileImage(),  // 3. 이미지 꺼내오기
-                */
+
 
 
                 new TokenInfo(accessToken, expiresIn)

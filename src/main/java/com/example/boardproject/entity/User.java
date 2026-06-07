@@ -86,4 +86,18 @@ public class User {
         this.refreshTokenExpireAt = null;
     }
 
+    //비밀번호 수정시
+    public void updateFields(String password) {
+        updatePassword(password);
+
+    }
+
+    //회원가입 시간 저장
+    public void updateSigninDate(LocalDateTime signinDate) {
+        this.signinDate = signinDate;
+    }
+
+
+
+
 }

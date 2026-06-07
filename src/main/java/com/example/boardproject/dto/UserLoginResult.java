@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class LoginResult {
+public class UserLoginResult {
     // 1.응답 바디 (accessToken, expiresIn)
     private UserLoginResponseDto response;
 
