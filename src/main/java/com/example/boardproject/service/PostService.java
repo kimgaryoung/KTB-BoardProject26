@@ -47,11 +47,20 @@ public class PostService {
 
     //게시글  삭제 deletePost
     @Transactional
-    public String deletePost(final Long postId) throws Exception {
+    public String deletePost(final Long postId, final Long userId) throws Exception {
+        //User user = findByUserId(userId);
         Post post = findByPostId(postId);
+
+        if (!post.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("게시글 작성자가 아니라서 삭제 안됨..");
+        }
+
         postRepository.delete(post);
 
         return "게시글 삭제";
+
+
+
     }
 
     private Post findByPostId(final Long postId) throws Exception {
@@ -62,8 +71,12 @@ public class PostService {
     //게시글 수정.
     @Transactional
     public String updatePost(final Long postId, final PostUpdateRequestDto dto, final Long userId) throws Exception {
-        User user = findByUserId(userId);
+        //User user = findByUserId(userId);
         Post post = findByPostId(postId);
+
+        if (!post.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("게시글 작성자가 아니라서 수정 안됨.");
+        }
 
         post.updatePost(
                 dto.getPostTitle(),
