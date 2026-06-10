@@ -34,7 +34,7 @@ public class PostService {
                 dto.getPostTitle(),
                 dto.getPostImage(),
                 dto.getPostDate(),
-                dto.getPostContent().toString()
+                dto.getPostContent()
         );
 
         return PostResponseDto.from(postRepository.save(post));
@@ -95,7 +95,6 @@ public class PostService {
     }
 
     //게시글 상세조회
-
     @Transactional(readOnly = true)
     public PostGetDetailResponseDto getPost(final Long postId) throws Exception {
         Post post = findByPostId(postId);

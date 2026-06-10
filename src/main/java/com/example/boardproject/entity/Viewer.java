@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-@IdClass(viewerId.class)
 @Table(name = "VIEWER")
 public class Viewer {  //해당 테이블에 속성으로 insert되었다는 게 조회한적이 있다는 의미라 조회수레 자동으로 포함됨.
 
@@ -24,7 +23,7 @@ public class Viewer {  //해당 테이블에 속성으로 insert되었다는 게
     private Boolean likeCheck;
 
 
-    //생성자 - 행이 생성되면 좋아요 +1
+    //생성자 - 행이 생성되면 조회수 +1
     public Viewer(Long postId, Long userId) {
         this.postId = postId;
         this.userId = userId;

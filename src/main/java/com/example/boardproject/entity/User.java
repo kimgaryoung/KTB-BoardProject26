@@ -22,10 +22,11 @@ public class User {
     @Column(nullable = false, length = 20)
     private String password;
 
+    //이메일이 유니크해야 동일한 사용자가 중복되서 안들어옴.
     @Column(nullable = false, length = 255,unique = true)
     private String email;
 
-
+    //
     @Column(length = 255)
     private String refreshToken;
 
