@@ -33,9 +33,8 @@ public class Comment {
 
     //4. postId  long, userId long 참조힘
     //한명의 사용자가 여러개의 댓글과 한 게시글에 대한 여러개의 댓글을 달 수 있음.
-
     //해당 table에는 profileImage와 nickname, userId만 있음. 이 값은 댓글 전체 조회시 항상 필요함.
-    //따라서 EAGER로 설정하면 전체 조회시 발생하는  N+1을 방지할 수 있음.
+    //쿼리에서 바로 접근하고 싶어서 EAGER 사용..
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private UserProfile userProfile;
