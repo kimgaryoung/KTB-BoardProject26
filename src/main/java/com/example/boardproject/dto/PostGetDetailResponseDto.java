@@ -2,6 +2,8 @@ package com.example.boardproject.dto;
 
 import com.example.boardproject.entity.Post;
 import com.example.boardproject.entity.UserProfile;
+import com.example.boardproject.entity.PostProfile;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,6 +31,12 @@ public class PostGetDetailResponseDto {
     private List<CommentInfo> comments;
 
 
+    //postProfile 값들
+    private Integer commentCount;
+    private Integer likeCount;
+    private Integer viewerCount;
+
+
     //comment 전체를 다 요청하니까 댓글안에 또 post내용이 중첩되는 상황이 발생해서 필요한 값만 뽑아서 사용
     @Getter
     @AllArgsConstructor
@@ -41,11 +49,16 @@ public class PostGetDetailResponseDto {
         private String nickname;
         private String profileImage;
 
+
+
     }
 
     //from : 하나, of : 여러개 반화시
     //댓글도 함께 조회되게 변경
-    public static PostGetDetailResponseDto of(Post post, UserProfile userProfile, List<CommentInfo> comments) {
+    public static PostGetDetailResponseDto of(Post post,
+                                              UserProfile userProfile,
+                                              List<CommentInfo> comments,
+                                              PostProfile postProfile) {
         return PostGetDetailResponseDto.builder()
                 .nickname(userProfile.getNickname())
                 .profileImage(userProfile.getProfileImage())
@@ -55,7 +68,12 @@ public class PostGetDetailResponseDto {
                 .postTitle(post.getPostTitle())
                 .postDate(post.getPostDate())
                 .comments(comments)
+                .commentCount(postProfile.getCommnetCount())
+                .likeCount(postProfile.getLikeCount())
+                .viewerCount(postProfile.getViewerCount())
                 .build();
+
+
 
     }
 

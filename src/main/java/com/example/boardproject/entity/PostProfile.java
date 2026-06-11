@@ -44,6 +44,14 @@ public class PostProfile {
         this.viewerCount=0;
     }
 
+    public void updateCommentCount(Integer commnetCount){
+        this.commnetCount+=commnetCount;
+
+    }
+
+
+
+
 
 
 
