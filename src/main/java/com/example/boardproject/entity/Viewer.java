@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @Table(name = "VIEWER")
+@IdClass(ViewerId.class)// 복합키를 PK로 설정, (JPQL 쿼리 간단하게 쓰는게 좋아서 해당 방법으로 구현)
 public class Viewer {  //해당 테이블에 속성으로 insert되었다는 게 조회한적이 있다는 의미라 조회수레 자동으로 포함됨.
 
     @Id @Column(name = "post_id")
@@ -23,7 +24,7 @@ public class Viewer {  //해당 테이블에 속성으로 insert되었다는 게
     private Boolean likeCheck;
 
 
-    //생성자 - 행이 생성되면 조회수 +1
+    //생성자 - post상세 조회 될때 -> 행이 생성되면
     public Viewer(Long postId, Long userId) {
         this.postId = postId;
         this.userId = userId;

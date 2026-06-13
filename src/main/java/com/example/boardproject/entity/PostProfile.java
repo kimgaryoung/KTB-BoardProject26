@@ -49,6 +49,12 @@ public class PostProfile {
 
     }
 
+    public void updateViewCount(Integer viewerCount)
+    {
+        this.viewerCount=viewerCount;
+
+    }
+
 
 
 

@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.example.boardproject.entity.QPostProfile.postProfile;
+
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class PostService {
     private final UserProfileRepository userProfileRepository;
     private final CommentRepository commentRepository;
     private final PostProfileRepository postProfileRepository;
+    private final ViewerRepository viewerRepository;
 
 
     //게시글 추가
@@ -125,11 +128,30 @@ public class PostService {
         UserProfile userProfile = findByProfileUserId(post.getUserId());
         PostProfile postProfile =findPostProfile(postId);
 
+
         //작성한 댓글 List로 전부다 조회되게
         List<PostGetDetailResponseDto.CommentInfo> comments = commentRepository.findCommentInfoByPostId(postId);
 
         //Postprofile-> 댓글수,좋아요수, 조회수도 함께 불러오기.
         return PostGetDetailResponseDto.of(post,userProfile,comments,postProfile);
+    }
+
+    // 조회수 증가
+    @Transactional
+    public void increaseViewCount(Long postId, Long userId) {
+
+        // 조회한 적 없으면 -> viewer행 생성  + postprofile.viewcount 1증가
+        // 조회한 적 있으면 -> 변경되는거 X
+        ViewerId viewerId = new ViewerId(postId, userId);
+        Viewer viewer =viewerRepository.findById(viewerId).orElse(null);
+
+            if(viewer==null){
+            PostProfile postProfile = findPostProfile(postId);
+
+
+            postProfile.updateViewCount(1);// 조회수 1증가
+
+        }
     }
 
 
