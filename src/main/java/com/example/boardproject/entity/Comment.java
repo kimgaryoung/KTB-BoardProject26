@@ -45,7 +45,8 @@ public class Comment {
 
 
     //생성자
-    public Comment(String commentContent,UserProfile userProfile, Post post) {
+    public Comment(String commentContent,UserProfile userProfile, Post post)
+    {
         this.commentContent = commentContent;
         this.userProfile = userProfile;
         this.post = post;
@@ -53,16 +54,15 @@ public class Comment {
 
 
     //댓글 단 시간 추가
-    public void updateCommentDate(LocalDateTime commentDate) {
+    public void updateCommentDate(LocalDateTime commentDate)
+    {
         this.commentDate = commentDate;
     }
 
     public void updateCommentContent(String commentContent)
     {
-
         this.commentContent =commentContent;
     }
-
 
 
 }

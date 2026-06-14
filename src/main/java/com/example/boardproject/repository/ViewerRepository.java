@@ -6,7 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ViewerRepository extends JpaRepository<Viewer, ViewerId> {
 
-    //existsByPostIdAndUserId
-
-
+    boolean existsByPostIdAndUserId(Long postId, Long userId);
 }

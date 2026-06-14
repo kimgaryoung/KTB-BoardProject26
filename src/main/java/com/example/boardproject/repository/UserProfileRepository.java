@@ -15,4 +15,6 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long>{
 
     @Query("select c from Comment c where  c.commentId=:commentId")
     Comment findByCommentId(Integer commentId);
+
+    boolean existsByNickname(String nickname);
 }

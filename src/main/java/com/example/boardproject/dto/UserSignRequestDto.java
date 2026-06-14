@@ -16,6 +16,6 @@ public class UserSignRequestDto {
     private String nickname;
 
     // 2. 프로필 사진은 필수값 아님
-    private String profileImage;
+    private String profileImageUrl;
 }
 

@@ -48,7 +48,7 @@ public class UserService {
         UserProfile userProfile = new UserProfile(
                 user.getUserId(),
                 signupRequest.getNickname(),
-                signupRequest.getProfileImage()
+                signupRequest.getProfileImageUrl()
         );
         userProfileRepository.save(userProfile);
     }
@@ -139,8 +139,8 @@ public class UserService {
         UserProfile userProfile = findByUserId(userId);
 
         userProfile.updateFields(
-                dto.getNickName(),
-                dto.getProfileImage()
+                dto.getNickname(),
+                dto.getProfileImageUrl()
         );
 
         return "정상 반환되었습니다.";
@@ -180,7 +180,22 @@ public class UserService {
         return "회원 탈퇴";
     }
 
+    // 이메일 사용 가능 여부 (true = 사용 가능)
+    public boolean isEmailAvailable(String email) {
+        return !userRepository.existsByEmail(email);
+    }
 
+    // 닉네임 사용 가능 여부 (true = 사용 가능)
+    public boolean isNicknameAvailable(String nickname) {
+        return !userProfileRepository.existsByNickname(nickname);
+    }
+
+    // 현재 로그인 유저 정보 조회
+    public AuthCheckResponseDto getAuthCheck(Long userId) {
+        UserProfile userProfile = userProfileRepository.findByUserId(userId);
+        User user = userRepository.findByUserId(userId);
+        return AuthCheckResponseDto.of(userId, userProfile, user);
+    }
 
 
 }

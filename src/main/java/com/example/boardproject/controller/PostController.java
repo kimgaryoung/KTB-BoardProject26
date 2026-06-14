@@ -4,7 +4,6 @@ import com.example.boardproject.auth.PrincipalDetails;
 import com.example.boardproject.auth.Result;
 import com.example.boardproject.dto.*;
 import com.example.boardproject.service.PostService;
-import com.example.boardproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -20,78 +20,83 @@ public class PostController {
 
     private final PostService postService;
 
-
-
-    //게시글 추가
+    // 게시글 추가
     @PostMapping("/posts")
     public ResponseEntity<Result> createPost(@RequestBody final PostRequestDto dto,
                                              @AuthenticationPrincipal final PrincipalDetails user) {
-
-
-        PostResponseDto response  = postService.createPost(dto, user);
-
-        return ResponseEntity.ok(Result.of(response));
-
+        PostResponseDto response = postService.createPost(dto, user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Result.of(response));
     }
 
-
-    //게시글 삭제
-    //글쓴이만 삭제할 수 있게 해야함.
+    // 게시글 삭제
     @DeleteMapping("/posts/{postId}")
-    public String deletePost(@PathVariable("postId") final Long postId,
-                             @AuthenticationPrincipal final PrincipalDetails user) throws Exception {
-
-        return postService.deletePost(postId,user.getId());
+    public ResponseEntity<Result> deletePost(@PathVariable final Long postId,
+                                             @AuthenticationPrincipal final PrincipalDetails user) throws Exception {
+        postService.deletePost(postId, user.getId());
+        return ResponseEntity.ok(Result.of("게시글 삭제"));
     }
 
-    //게시글 수정
-    //글쓴이만 수정할 수 있게 해야함.
+    // 게시글 수정
     @PatchMapping("/posts/{postId}")
-    public String updatePost(@RequestBody final PostUpdateRequestDto dto,
-                                @PathVariable("postId") final Long postId,
-                                @AuthenticationPrincipal final PrincipalDetails user) throws Exception {
-
-
-        return postService.updatePost(postId, dto, user.getId());
+    public ResponseEntity<Result> updatePost(@RequestBody final PostUpdateRequestDto dto,
+                                             @PathVariable final Long postId,
+                                             @AuthenticationPrincipal final PrincipalDetails user) throws Exception {
+        postService.updatePost(postId, dto, user.getId());
+        return ResponseEntity.ok(Result.of("정상 수정."));
     }
 
-    // 게시글 전체 조회= 게시글 목록 조회.
+    // 게시글 전체 조회 (페이지네이션)
     @GetMapping("/posts")
-    public ResponseEntity<Result> getPosts() {
-
-        List<PostGetResponseDto> response = postService.getPosts();
+    public ResponseEntity<Result> getPosts(@RequestParam(defaultValue = "0") int offset,
+                                           @RequestParam(defaultValue = "5") int limit) {
+        List<PostGetResponseDto> response = postService.getPosts(offset, limit);
         return ResponseEntity.ok(Result.of(response));
     }
 
-    //게시글 상세 조회, 해당 api요청이 올때마다 조회수 증가, 한사람당 한명만 +1
+    // 게시글 검색
+    @GetMapping("/posts/search")
+    public ResponseEntity<Result> searchPosts(@RequestParam String keyword,
+                                              @RequestParam(defaultValue = "0") int offset,
+                                              @RequestParam(defaultValue = "5") int limit) {
+        List<PostGetResponseDto> response = postService.searchPosts(keyword, offset, limit);
+        return ResponseEntity.ok(Result.of(response));
+    }
+
+    // 게시글 상세 조회
     @GetMapping("/posts/{postId}")
-    public ResponseEntity<Result> getPost(@PathVariable("postId") final Long postId , @AuthenticationPrincipal final PrincipalDetails principal ) throws Exception {
+    public ResponseEntity<Result> getPost(@PathVariable final Long postId,
+                                          @AuthenticationPrincipal final PrincipalDetails principal) throws Exception {
+        Long userId = principal != null ? principal.getId() : null;
 
-        // 조회수를 게시글 상세 조회와는 따로 구현해야 게시글 상세조회가 readolny를 유지할 수 있기 떄문에 controller에서 다른 서비스 요청.
-        /* increaseViewCount 함수에 게시글 상세조회한 사용자의 userId가 필요하기 때문에
-        @AuthenticationPrincipal final PrincipalDetails principal 을 사용함.
+        if (userId != null) {
+            postService.increaseViewCount(postId, userId);
+        }
 
-         @AuthenticationPrincipal : 사용하면 인증된 사용자 객체를 쉽게 주입 받으 수 있음.
-          장점 : 직접 객체를 다루지 않고 주입 받을 수 있어서 간결함./ 인증된 사용자 정보만 주입 받아서 보안측면에서 유리함.
-          주의할 점 : 
-
-
-
-         */
-
-
-        postService.increaseViewCount(postId, principal.getId());
-
-        PostGetDetailResponseDto response = postService.getPost(postId);
-
+        PostGetDetailResponseDto response = postService.getPost(postId, userId);
         return ResponseEntity.ok(Result.of(response));
     }
 
+    // 좋아요
+    @PostMapping("/posts/{postId}/likes")
+    public ResponseEntity<Result> likePost(@PathVariable final Long postId,
+                                           @AuthenticationPrincipal final PrincipalDetails user) {
+        try {
+            Integer likeCount = postService.likePost(postId, user.getId());
+            return ResponseEntity.ok(Result.of(Map.of("likeCount", likeCount)));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Result.of("POST_ALREADY_LIKED"));
+        }
+    }
 
-
-
-
-
-
-
+    // 좋아요 취소
+    @DeleteMapping("/posts/{postId}/likes")
+    public ResponseEntity<Result> unlikePost(@PathVariable final Long postId,
+                                             @AuthenticationPrincipal final PrincipalDetails user) {
+        try {
+            Integer likeCount = postService.unlikePost(postId, user.getId());
+            return ResponseEntity.ok(Result.of(Map.of("likeCount", likeCount)));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Result.of("POST_ALREADY_UNLIKED"));
+        }
+    }
 }

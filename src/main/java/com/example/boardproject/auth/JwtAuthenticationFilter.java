@@ -28,11 +28,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     //토큰 검증 없이 통과시킬 url
     private static final String[] WHITE_LIST = {
-            "/users", // 회원가입
-            "/auth", //로그인
-            "/users/token/refresh", // 토큰 재발급
-
-
+            "/auth/signup",
+            "/auth/login",
+            "/auth/logout",
+            "/token/refresh",
+            "/users/email/check",
+            "/users/nickname/check",
     };
 
     //부모 클래스에서도 protected로 해서 접근제어자 이럼.
@@ -40,14 +41,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
 
-        String uri = request.getRequestURI();
+        String uri = request.getServletPath();
         String method = request.getMethod();
 
         // GET /posts, GET /posts/1 는 토큰 없이 통과
         if (method.equals("GET") && PatternMatchUtils.simpleMatch("/posts*", uri)) {
             return true;
         }
-        return PatternMatchUtils.simpleMatch(WHITE_LIST, request.getRequestURI());
+        return PatternMatchUtils.simpleMatch(WHITE_LIST, uri);
     }
 
 
@@ -61,14 +62,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
+        String token = null;
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        } else if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if (token == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-
-        String token = authHeader.substring(7);
 
         try {
             jwtProvider.parse(token);

@@ -49,10 +49,12 @@ public class PostProfile {
 
     }
 
-    public void updateViewCount(Integer viewerCount)
-    {
-        this.viewerCount=viewerCount;
+    public void updateViewCount(Integer delta) {
+        this.viewerCount += delta;
+    }
 
+    public void updateLikeCount(Integer delta) {
+        this.likeCount += delta;
     }
 
 
