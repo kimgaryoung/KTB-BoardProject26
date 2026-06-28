@@ -32,7 +32,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth/signup", "/auth/login", "/auth/logout", "/token/refresh").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/posts/**", "/users/email/check", "/users/nickname/check").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/health", "/posts/**", "/users/email/check", "/users/nickname/check").permitAll()
                         .anyRequest().authenticated()
                 )
                 //  JWT 필터를 Security 체인에 등록
