@@ -9,12 +9,11 @@ cloud:
 spring:
   application:
     name: BoardProject
-  datasource:
+    datasource:
       url: ${DB_URL}
       username: ${DB_USERNAME}
       password: ${DB_PASSWORD}
       driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
     open-in-view: false
     hibernate:
       ddl-auto: update
@@ -28,14 +27,11 @@ spring:
       # 260627 - 이미지 업로드 요청 크기 제한 추가
       max-file-size: 5MB
       max-request-size: 6MB
-Environment="DB_URL=jdbc:mysql://10:
-  x:
-    x:
-      x:3306/DB이름?serverTimezone=Asia/Seoul&characterEncoding=UTF-8":
-jwt:
-  secret: this-is-scarlett-jwt-secret-100010101010101010-whyyynottttt
-  access-token-exp-seconds: 10800
-  refresh-token-exp-seconds: 86400
+
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-exp-seconds: 10800
+    refresh-token-exp-seconds: 86400
 
 server:
   port: 3000
