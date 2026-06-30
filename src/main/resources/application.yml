@@ -10,8 +10,10 @@ spring:
   application:
     name: BoardProject
   datasource:
-
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${jdbc:mysql://10.0.1.234:3306/DB이름?serverTimezone=Asia/Seoul&characterEncoding=UTF-8"}
+    username: ${boarduser}
+    password: ${}
+    driver-class-name : com.mysql.cj.jdbc.Driver
   jpa:
     open-in-view: false
     hibernate:
@@ -26,7 +28,10 @@ spring:
       # 260627 - 이미지 업로드 요청 크기 제한 추가
       max-file-size: 5MB
       max-request-size: 6MB
-
+Environment="DB_URL=jdbc:mysql://10:
+  x:
+    x:
+      x:3306/DB이름?serverTimezone=Asia/Seoul&characterEncoding=UTF-8":
 jwt:
   secret: this-is-scarlett-jwt-secret-100010101010101010-whyyynottttt
   access-token-exp-seconds: 10800
