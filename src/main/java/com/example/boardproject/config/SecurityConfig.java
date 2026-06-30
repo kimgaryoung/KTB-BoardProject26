@@ -45,6 +45,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:8080");  // 프론트 주소
+        //http://board-scarlettproject-alb-1578950709.ap-northeast-2.elb.amazonaws.com/html/index.html
+
+        config.addAllowedOrigin("http://board-scarlettproject-alb-1578950709.ap-northeast-2.elb.amazonaws.com/html/index.html");  // ALB주소
+
         config.addAllowedMethod("*");   // GET, POST, PUT, DELETE, PATCH 모두 허용
         config.addAllowedHeader("*");   // 모든 헤더 허용
         config.setAllowCredentials(true);  // 쿠키 전송 허용 (credentials: 'include' 때문에 필요)
