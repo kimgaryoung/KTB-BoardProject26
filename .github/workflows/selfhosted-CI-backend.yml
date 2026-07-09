@@ -1,4 +1,4 @@
-name: Self Hosted Runner CI
+name: Self Hosted Runner backend CI
 
 on:
   push:
