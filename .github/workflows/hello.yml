@@ -1,0 +1,21 @@
+# hello.yml 파일
+name: Hello GitHub Actions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print greeting
+        run: echo "Hello, GitHub Actions!"
+
+      - name: Print current date
+        run: date
+
+      - name: Print runner information
+        run: |
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner Architecture: $RUNNER_ARCH"
