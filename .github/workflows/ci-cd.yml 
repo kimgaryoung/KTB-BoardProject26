@@ -1,0 +1,55 @@
+# ci-cd.yml
+name: GitHub Actions Release CI CD Practice
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show release information
+        run: |
+          echo "릴리즈가 발행되었습니다"
+          echo "Release tag: ${{ github.event.release.tag_name }}"
+          echo "Release name: ${{ github.event.release.name }}"
+          echo "Target commit: $GITHUB_SHA"
+
+      - name: Step 1 - Start test
+        run: echo "테스트를 시작합니다"
+
+      - name: Step 2 - Run test
+        run: |
+          echo "테스트 실행 중..."
+          echo "테스트 성공"
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Build application
+        run: |
+          echo "애플리케이션 빌드 중..."
+          echo "빌드 성공"
+          echo "빌드 대상 태그: ${{ github.event.release.tag_name }}"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy application
+        run: |
+          echo "배포 시작"
+          echo "Release tag: ${{ github.event.release.tag_name }}"
+          echo "Commit SHA: $GITHUB_SHA"
+          echo "배포 완료"
+
+      - name: Health check
+        run: |
+          echo "Health Check 실행"
+          echo "서비스 정상 상태"
