@@ -1,13 +1,50 @@
-# ci-cd.yml
-name: GitHub Actions Release CI CD Practice
+name: Scarlett GitHub Actions Practice
 
 on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+
   release:
     types:
       - published
 
 jobs:
+  hello:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print greeting
+        run: echo "Hello, GitHub Actions!"
+
+      - name: Print current date
+        run: date
+
+      - name: Print runner information
+        run: |
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner Architecture: $RUNNER_ARCH"
+
+  push-info:
+    if: github.event_name == 'push'
+    needs: hello
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show commit information
+        run: |
+          echo "Push event detected!"
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Branch: $GITHUB_REF"
+          echo "Commit SHA: $GITHUB_SHA"
+          echo "Triggered by: $GITHUB_ACTOR"
+          echo "Commit message: ${{ github.event.head_commit.message }}"
+
   test:
+    if: github.event_name == 'release'
+    needs: hello
     runs-on: ubuntu-latest
 
     steps:
@@ -27,6 +64,7 @@ jobs:
           echo "테스트 성공"
 
   build:
+    if: github.event_name == 'release'
     needs: test
     runs-on: ubuntu-latest
 
@@ -38,6 +76,7 @@ jobs:
           echo "빌드 대상 태그: ${{ github.event.release.tag_name }}"
 
   deploy:
+    if: github.event_name == 'release'
     needs: build
     runs-on: ubuntu-latest
 
