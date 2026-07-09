@@ -1,0 +1,20 @@
+name: GitHub Actions Release CI CD Practice
+
+on:
+  release:
+    types:
+      - published
+
+  workflow_dispatch:
+
+jobs:
+  hello:
+    uses: ./.github/workflows/hello.yml
+
+  push-info:
+    needs: hello
+    uses: ./.github/workflows/push.yml
+
+  ci-cd:
+    needs: push-info
+    uses: ./.github/workflows/ci-cd.yml
