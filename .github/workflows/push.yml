@@ -1,0 +1,21 @@
+# push.yml 파일
+name: Push Trigger Practice
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-message:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show commit information
+        run: |
+          echo "Push event detected!"
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Branch: $GITHUB_REF"
+          echo "Commit SHA: $GITHUB_SHA"
+          echo "Triggered by: $GITHUB_ACTOR"
+          echo "Commit message: $GITHUB_EVENT_HEAD_COMMIT_MESSAGE"
