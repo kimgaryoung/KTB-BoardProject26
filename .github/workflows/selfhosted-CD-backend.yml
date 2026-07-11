@@ -11,14 +11,16 @@ on:
       - main
 
 
-deploy:
-  runs-on: self-hosted
-  timeout-minutes: 10
+jobs:
+
+  deploy:
+    runs-on: self-hosted
+    timeout-minutes: 10
 
 
-  steps:
-    - name: Deploy application
-      run: |
-        echo "배포 시작"
-        echo "여기에 docker build / docker run 명령어 작성"
-        echo "배포 완료"
+    steps:
+      - name: Deploy application
+        run: |
+          echo "배포 시작"
+          echo "여기에 docker build / docker run 명령어 작성"
+          echo "배포 완료"
