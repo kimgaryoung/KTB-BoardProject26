@@ -1,0 +1,96 @@
+@import url('./common/layout.css');
+@import url('../component/header/header.css');
+
+.wrap {
+    width: 100%;
+    padding-left: 16px;
+    padding-right: 16px;
+
+    justify-content: flex-start;
+    row-gap: 16px;
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 31px;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: rgba(69, 72, 84, 1);
+}
+
+.inputBox {
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+    width: 100%;
+}
+
+.inputBox label {
+    font-size: 14px;
+    line-height: 17px;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    color: rgba(69, 72, 84, 1);
+
+    padding: 16px 16px;
+
+    border-bottom: 1px solid #00000029;
+}
+.inputBox input {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-bottom: 1px solid #00000029;
+    background-color: transparent;
+}
+
+.inputBox textarea {
+    width: 100%;
+    padding: 16px;
+    height: 200px;
+    resize: none;
+    outline: none;
+
+    border: none;
+    border-bottom: 1px solid #00000029;
+    background-color: transparent;
+}
+
+.wrap button {
+    width: 80%;
+    height: 33px;
+    margin-top: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+
+    background-color: #aca0eb;
+
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 16.8px;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: rgba(255, 255, 255, 1);
+
+    border: none;
+}
+
+.non-border {
+    border: none !important;
+    padding: 0 16px !important;
+}
+
+.deleteFile {
+    cursor: pointer;
+    padding-left: 10px;
+    color: red;
+}
+
+.helperText {
+    color: #f00;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="kr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/config.js"></script>
+    <link
+            rel="stylesheet"
+            href="../css/index.css"
+            crossorigin="anonymous"
+    />
+    <title>STARTUPCODE Edu Community</title>
+</head>
+<body>
+<section class="wrap">
+    <div class="write">
+        <h2>
+            안녕하세요, <br />
+            커뮤니티 <b>게시판</b> 입니다.
+        </h2>
+        <div class="searchRow">
+            <div class="searchBox">
+                <input
+                    id="searchInput"
+                    class="searchInput"
+                    type="text"
+                    placeholder="검색어를 입력해주세요"
+                    aria-label="게시글 검색"
+                    minlength="2"
+                />
+                <button
+                    class="searchButton"
+                    type="button"
+                    aria-label="검색"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        aria-hidden="true"
+                    >
+                        <circle
+                            cx="11"
+                            cy="11"
+                            r="7"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        />
+                        <line
+                            x1="16.65"
+                            y1="16.65"
+                            x2="21"
+                            y2="21"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                </button>
+            </div>
+            <a href="./board-write.html" id="writeLink">게시글 작성</a>
+        </div>
+        <div class="sortRow isHidden" id="searchSortRow" aria-hidden="true">
+            <div class="sortBox">
+                <svg
+                    class="sortIcon"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M3 5h18l-7 8v5l-4 2v-7L3 5z"
+                        fill="currentColor"
+                    />
+                </svg>
+                <span class="sortLabel">정렬</span>
+                <select id="searchSortSelect" class="sortSelect" aria-label="검색 정렬">
+                    <option value="recent">최신순</option>
+                    <option value="relevance">정확도순</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <section class="boardList"></section>
+</section>
+<div class="background"></div>
+</body>
+<script src="../js/index.js" type="module"></script>
+</html>

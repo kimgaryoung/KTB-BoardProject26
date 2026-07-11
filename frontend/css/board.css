@@ -1,0 +1,256 @@
+@import url('./common/layout.css');
+@import url('../component/header/header.css');
+@import url('../component/comment/comment.css');
+
+.blue {
+    color: rgba(0, 153, 255, 1);
+}
+
+.red {
+    color: rgba(252, 85, 85, 1);
+}
+.gray {
+    color: rgba(199, 202, 209, 1);
+}
+
+.head {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+
+    border-bottom: 1px solid #00000029;
+    padding-bottom: 16px;
+}
+
+.head .title {
+    font-size: 24px;
+    line-height: 31px;
+    letter-spacing: -0.02em;
+    font-weight: bold;
+    color: #000000;
+}
+
+.head .writerWrap {
+    display: flex;
+    align-items: center;
+    column-gap: 12px;
+}
+.head .mod {
+    margin-left: auto;
+}
+.head .mod button {
+    padding: 2px 12px;
+
+    border-radius: 8px;
+    border: 1px solid #aca0eb;
+    background-color: transparent;
+
+    cursor: pointer;
+
+    font-size: 15px;
+    line-height: 1.56em;
+}
+.hidden {
+    display: none;
+}
+
+.head .writerWrap .profileImg img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.head .writerWrap .nickname {
+    font-size: 16px;
+    line-height: 26px;
+    letter-spacing: -0.02em;
+    color: rgba(69, 72, 84, 1);
+}
+.head .writerWrap .createdAt {
+    font-size: 12px;
+    line-height: 17px;
+    letter-spacing: -0.02em;
+    /* color: rgba(171, 174, 186, 1); */
+    color: #000000;
+    font-weight: 200;
+}
+
+.body {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 32px;
+
+    padding: 16px 0 32px 0;
+
+    border-bottom: 1px solid rgba(238, 238, 241, 1);
+}
+
+.body .content {
+    font-size: 16px;
+    line-height: 26px;
+    letter-spacing: -0.02em;
+    color: rgba(92, 97, 112, 1);
+    text-align: left;
+    width: 100%;
+    word-wrap: break-word;
+}
+.body .contentImg img {
+    max-width: 100%;
+    max-height: 306px;
+
+    object-fit: contain;
+
+    background: #f4f5f7;
+}
+
+.body .bodyWrap {
+    display: flex;
+    flex-direction: row;
+    column-gap: 64px;
+}
+
+.body .bodyWrap .likeWrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    row-gap: 16px;
+}
+
+.body .bodyWrap .likeCount {
+    font-size: 18px;
+    line-height: 25px;
+    letter-spacing: -0.02em;
+}
+
+.body .bodyWrap .likeWrap span {
+    display: flex;
+    flex-direction: row;
+    column-gap: 16px;
+}
+
+.body .bodyWrap .likeWrap span button {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.commentWrap {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+}
+.commentWrap .countItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 116px;
+    height: 77px;
+    border-radius: 16px;
+    background-color: #d9d9d9;
+}
+.commentWrap .likeButton {
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    background-color: #d9d9d9;
+    font: inherit;
+    color: inherit;
+}
+.commentWrap .likeButton.is-active {
+    background-color: #aca0eb;
+}
+.commentWrap .likeButton:focus-visible {
+    outline: 2px solid #7f6aee;
+    outline-offset: 2px;
+}
+
+.commentWrap h3 {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3em;
+}
+.commentWrap p {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.56em;
+    word-wrap: break-word;
+}
+
+.comment {
+    width: 90%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 180px 1fr;
+    row-gap: 32px;
+
+    padding: 32px 0;
+}
+
+.comment .helperText {
+    color: #f00;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-top: 10px;
+}
+
+.commentInputWrap {
+    display: flex;
+    flex-direction: column;
+
+    height: 180px;
+    border-radius: 16px;
+
+    overflow: hidden;
+}
+
+.commentInputWrap p {
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+.commentInputWrap textarea {
+    height: 100%;
+    background-color: rgba(249, 249, 250, 1);
+    border: none;
+    resize: none;
+    outline: none;
+    padding: 16px;
+}
+.commentInputWrap div {
+    display: flex;
+    justify-content: flex-end;
+    background-color: rgba(249, 249, 250, 1);
+    padding: 5px;
+    margin-top: 0;
+    border-top: 1px solid rgba(238, 238, 241, 1);
+}
+.commentInputWrap div button {
+    padding: 7px 40px;
+    color: rgba(255, 255, 255, 1);
+    font-size: 14px;
+    line-height: 16.8px;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+
+    background-color: #aca0eb;
+    border: none;
+    border-radius: 16px;
+}
+
+.commentList {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    row-gap: 32px;
+}

@@ -1,0 +1,170 @@
+@import url('./common/layout.css');
+@import url('../component/board/boardItem.css');
+@import url('../component/header/header.css');
+
+.boardList {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    overflow-y: scroll;
+}
+
+.write {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* 중앙 정렬에서 시작 정렬로 변경 */
+    justify-content: center;
+    row-gap: 24px;
+    padding: 40px 0 10px 0;
+    width: 100%; /* .write 영역이 부모 컨테이너의 전체 너비를 차지하도록 설정 */
+}
+
+.write h2 {
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 32px;
+    letter-spacing: -0.02em;
+    color: rgba(69, 72, 84, 1);
+    text-align: center;
+    width: 100%; /* h2도 중앙 정렬을 유지하도록 설정 */
+}
+
+.write a {
+    margin-left: auto; /* 링크를 오른쪽으로 밀어붙임 */
+    margin-right: 10px;
+    padding: 7px 32px;
+    border-radius: 18px;
+    background-color: #aca0eb;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 26px;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+}
+
+.searchRow {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+}
+
+.sortRow {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: -12px;
+    margin-bottom: 8px;
+}
+
+.sortBox {
+    margin-right: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 12px;
+    border: 1px solid #e5e5e5;
+    background-color: #ffffff;
+}
+
+.sortIcon {
+    color: #7f6aee;
+}
+
+.sortLabel {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.02em;
+    color: #454854;
+}
+
+.sortSelect {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.02em;
+    color: #454854;
+    padding: 2px 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.sortSelect:focus-visible {
+    outline: 2px solid #7f6aee;
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+.isHidden {
+    display: none;
+}
+
+.searchBox {
+    flex: 1 1 auto;
+    max-width: 520px;
+    margin-left: 10px;
+    position: relative;
+}
+
+.searchInput {
+    width: 100%;
+    height: 40px;
+    padding: 0 44px 0 16px;
+    border-radius: 12px;
+    border: 1px solid #e5e5e5;
+    background-color: #ffffff;
+    font-size: 16px;
+    line-height: 26px;
+    letter-spacing: -0.02em;
+    color: #454854;
+    outline: none;
+}
+
+.searchInput::placeholder {
+    color: #a9acb8;
+}
+
+.searchInput:focus {
+    border-color: #aca0eb;
+    box-shadow: 0 0 0 3px rgba(172, 160, 235, 0.2);
+}
+
+.searchButton {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #7f6aee;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.searchButton:hover {
+    background-color: rgba(172, 160, 235, 0.15);
+}
+
+.searchButton:focus-visible {
+    outline: 2px solid #7f6aee;
+    outline-offset: 2px;
+}
+
+b {
+    font-weight: 700;
+}
+
+.write a:hover {
+    background-color: #7f6aee; /* 여기서 색상을 원하는 색으로 변경하세요 */
+}
