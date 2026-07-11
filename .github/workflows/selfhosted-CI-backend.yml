@@ -17,6 +17,8 @@ on:
 jobs:
   test:
     runs-on: self-hosted
+    timeout-minutes: 10
+
 
     steps:
       - name: test 코드 작성후 추가 해보기
@@ -26,9 +28,11 @@ jobs:
 
 
 
+
   build:
     needs: test
     runs-on: self-hosted
+    timeout-minutes: 10
 
     steps:
       - name: Checkout source code
@@ -50,13 +54,3 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build -x test
 
-  deploy:
-    runs-on: self-hosted
-    needs: build
-
-    steps:
-      - name: Deploy application
-        run: |
-          echo "배포 시작"
-          echo "여기에 docker build / docker run 명령어 작성"
-          echo "배포 완료"
