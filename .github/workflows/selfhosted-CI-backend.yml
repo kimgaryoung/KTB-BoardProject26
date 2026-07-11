@@ -15,22 +15,12 @@ on:
 
 
 jobs:
-  test:
-    runs-on: self-hosted
-    timeout-minutes: 10
 
-
-    steps:
-      - name: test 코드 작성후 추가 해보기
-        run: |
-          echo "테스트step1"
-          
 
 
 
 
   build:
-    needs: test
     runs-on: self-hosted
     timeout-minutes: 10
 
