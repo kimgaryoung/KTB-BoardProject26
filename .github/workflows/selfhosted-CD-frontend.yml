@@ -1,19 +1,43 @@
-name: Self Hosted Runner fronted CD
+name: Self Hosted Runner frontend CD
 
 on:
-  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Self Hosted Runner frontend CI
+    types:
+      - completed
 
-
+permissions:
+  contents: read
 
 jobs:
-
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
-    timeout-minutes: 10
+    timeout-minutes: 5
+    env:
+      API_BASE_URL: ${{ secrets.API_BASE_URL }}
 
     steps:
-      - name: Deploy application
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t board-project-frontend:latest ./frontend
+
+      - name: Deploy
         run: |
-          echo "배포 시작"
-          echo "여기에 docker build / docker run 명령어 작성"
-          echo "배포 완료"
+          set -euo pipefail
+
+          if docker ps -a --format '{{.Names}}' | grep -Fxq board-project-frontend; then
+            docker rm -f board-project-frontend
+          fi
+
+          docker run -d \
+            --name board-project-frontend \
+            --restart unless-stopped \
+            -p 8080:8080 \
+            -e API_BASE_URL="${API_BASE_URL:-/api}" \
+            board-project-frontend:latest
+
+          echo " completed."
