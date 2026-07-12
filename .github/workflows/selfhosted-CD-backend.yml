@@ -62,7 +62,7 @@ jobs:
           fi
 
           nohup java -jar "$APP_DIR/app.jar" > "$APP_DIR/app.log" 2>&1 &
-          echo $! > "$APP_DIR/app.pid"
+          
 
           sleep 5
           if ! kill -0 "$(cat "$APP_DIR/app.pid")" 2>/dev/null; then
@@ -71,4 +71,4 @@ jobs:
             exit 1
           fi
 
-          echo "Backend deploy completed. PID=$(cat "$APP_DIR/app.pid")"
+          echo " completed. PID=$(cat "$APP_DIR/app.pid")"
