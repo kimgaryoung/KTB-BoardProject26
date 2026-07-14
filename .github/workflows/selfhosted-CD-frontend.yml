@@ -24,7 +24,7 @@ jobs:
     env:
       AWS_REGION: ap-northeast-2
       ECR_REPOSITORY: board-project-frontend
-      FRONTEND_PRIVATE_IP: 10.0.0.104
+      FRONTEND_PRIVATE_IP: 10.0.0.84
 
     steps:
       - name: Checkout source code
@@ -55,8 +55,15 @@ jobs:
               --username AWS \
               --password-stdin "$ECR_REGISTRY"
 
+      - name: Check Dockerfile
+        run: |
+          pwd
+          ls -la
+          find . -maxdepth 4 -iname 'Dockerfile*' -print
+
       - name: Build Docker image
         run: |
+          
           docker build \
             -t "$IMAGE_URI" \
             .
