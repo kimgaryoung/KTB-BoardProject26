@@ -63,10 +63,12 @@ jobs:
 
       - name: Build Docker image
         run: |
-          
+          set -euo pipefail
+
           docker build \
+            -f ./frontend/Dockerfile \
             -t "$IMAGE_URI" \
-            .
+            ./frontend
 
       - name: Push Docker image
         run: |
