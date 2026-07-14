@@ -1,4 +1,4 @@
-name: Self Hosted Runner frontend CD
+name: Self Hosted Runner Frontend CD
 
 on:
   workflow_run:
@@ -13,34 +13,104 @@ permissions:
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: self-hosted
+
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+
     timeout-minutes: 5
+
     env:
-      API_BASE_URL: http://15.165.231.154:3000
+      AWS_REGION: ap-northeast-2
+      ECR_REPOSITORY: board-project-frontend
+      FRONTEND_PRIVATE_IP: 10.0.0.104
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: |
-          IMAGE_TAG="$(date +%Y%m%d%H%M%S)"
-          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
-          docker build -t board-project-frontend:"$IMAGE_TAG" ./frontend
-
-      - name: Deploy
+      - name: Set image information
         run: |
           set -euo pipefail
 
-          if docker ps -a --format '{{.Names}}' | grep -Fxq board-project-frontend; then
-            docker rm -f board-project-frontend
-          fi
+          AWS_ACCOUNT_ID="$(aws sts get-caller-identity \
+            --query Account \
+            --output text)"
+
+          ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          IMAGE_TAG="${{ github.event.workflow_run.head_sha }}"
+          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+          echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID" >> "$GITHUB_ENV"
+          echo "ECR_REGISTRY=$ECR_REGISTRY" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password \
+            --region "$AWS_REGION" \
+          | docker login \
+              --username AWS \
+              --password-stdin "$ECR_REGISTRY"
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t "$IMAGE_URI" \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push "$IMAGE_URI"
+
+      - name: Test SSH connection
+        run: |
+          ssh \
+            -o StrictHostKeyChecking=no \
+            -i "$HOME/.ssh/frontend-deploy" \
+            ubuntu@"$FRONTEND_PRIVATE_IP" \
+            "hostname && whoami"
+
+      - name: Deploy to Frontend EC2
+        run: |
+          ssh \
+            -o StrictHostKeyChecking=no \
+            -i "$HOME/.ssh/frontend-deploy" \
+            ubuntu@"$FRONTEND_PRIVATE_IP" \
+            bash -s -- \
+              "$AWS_REGION" \
+              "$ECR_REGISTRY" \
+              "$IMAGE_URI" <<'REMOTE_SCRIPT'
+
+          set -euo pipefail
+
+          AWS_REGION="$1"
+          ECR_REGISTRY="$2"
+          IMAGE_URI="$3"
+
+          aws ecr get-login-password \
+            --region "$AWS_REGION" \
+          | docker login \
+              --username AWS \
+              --password-stdin "$ECR_REGISTRY"
+
+          docker pull "$IMAGE_URI"
+
+          docker rm -f board-project-frontend \
+            2>/dev/null || true
 
           docker run -d \
             --name board-project-frontend \
             --restart unless-stopped \
             -p 8080:8080 \
-            -e API_BASE_URL="${API_BASE_URL:-/api}" \
-            board-project-frontend:"$IMAGE_TAG"
+            -e API_BASE_URL="/api" \
+            "$IMAGE_URI"
 
-          echo " completed."
+          docker image prune -f
+
+          docker ps \
+            --filter "name=board-project-frontend"
+
+          REMOTE_SCRIPT
