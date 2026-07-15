@@ -81,7 +81,7 @@ jobs:
         run: |
           ssh \
             -o StrictHostKeyChecking=no \
-            -i "$HOME/.ssh/frontend-deploy" \
+            -i "$HOME/.ssh/frontend-deploy-key" \
             ubuntu@"$FRONTEND_PRIVATE_IP" \
             "hostname && whoami"
 
@@ -89,7 +89,7 @@ jobs:
         run: |
           ssh \
             -o StrictHostKeyChecking=no \
-            -i "$HOME/.ssh/frontend-deploy" \
+            -i "$HOME/.ssh/frontend-deploy-key" \
             ubuntu@"$FRONTEND_PRIVATE_IP" \
             bash -s -- \
               "$AWS_REGION" \
