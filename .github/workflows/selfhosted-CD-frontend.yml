@@ -23,7 +23,7 @@ jobs:
 
     env:
       AWS_REGION: ap-northeast-2
-      ECR_REPOSITORY: board-project-frontend
+      ECR_REPOSITORY: scarlett-frontend
       FRONTEND_PRIVATE_IP: 10.0.0.84
 
     steps:
@@ -69,6 +69,9 @@ jobs:
             -f ./frontend/Dockerfile \
             -t "$IMAGE_URI" \
             ./frontend
+          
+      
+      
 
       - name: Push Docker image
         run: |
