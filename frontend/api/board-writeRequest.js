@@ -24,10 +24,13 @@ export const createPost = (request, image) => {
     return result;
 };
 
-export const updatePost = (postId, request, image) => {
+export const updatePost = (postId, request) => {
     const result = requestJson(`${getServerUrl()}/v1/posts/${postId}`, {
         method: 'PATCH',
-        body: createPostFormData(request, image),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
         credentials: 'include',
     });
 

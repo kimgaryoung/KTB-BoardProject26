@@ -18,7 +18,7 @@ const CommentItem = (data, writerId, postId, commentId) => {
                 }
 
                 if (status === HTTP_OK)
-                    location.href = '/html/board.html?id=' + postId;
+                    location.href = '/post/' + postId;
             },
         );
     };
@@ -71,7 +71,7 @@ const CommentItem = (data, writerId, postId, commentId) => {
             if (!ok)
                 return Dialog('수정 실패', '댓글 수정에 실패하였습니다.');
 
-            location.href = '/html/board.html?id=' + postId;
+            location.href = '/post/' + postId;
         };
 
         // 취소 버튼 생성 및 설정

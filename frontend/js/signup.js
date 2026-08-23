@@ -17,6 +17,7 @@ import {
 const MAX_PASSWORD_LENGTH = 20;
 const HTTP_OK = 200;
 const HTTP_CREATED = 201;
+const HTTP_CONFLICT = 409;
 
 const signupData = {
     email: '',
@@ -107,8 +108,11 @@ const inputEventHandler = async (event, uid) => {
             if (status === HTTP_OK) {
                 helperElement.textContent = '';
                 isComplete = true;
-            } else {
+            } else if (status === HTTP_CONFLICT) {
                 helperElement.textContent = '*중복된 이메일 입니다.';
+            } else {
+                helperElement.textContent =
+                    '*이메일 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
             }
         }
         if (isComplete) {
@@ -179,8 +183,11 @@ const inputEventHandler = async (event, uid) => {
             if (status === HTTP_OK) {
                 helperElement.textContent = '';
                 isComplete = true;
-            } else {
+            } else if (status === HTTP_CONFLICT) {
                 helperElement.textContent = '*중복된 닉네임 입니다.';
+            } else {
+                helperElement.textContent =
+                    '*닉네임 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
             }
         }
 

@@ -76,22 +76,17 @@ const addBoard = async () => {
         if (!ok) throw new Error('서버 응답 오류');
 
         if (status === HTTP_CREATED) {
-            window.location.href = `/html/board.html?id=${data.id}`;
+            window.location.href = `/post/${data.id}`;
         } else {
             const helperElement = contentHelpElement;
             helperElement.textContent = '제목, 내용을 모두 작성해주세요.';
         }
     } else {
         const postId = getQueryString('postId');
-        const { ok, status } = await updatePost(
-            postId,
-            boardData,
-            selectedImage,
-        );
-        if (!ok) throw new Error('서버 응답 오류');
+        const { status } = await updatePost(postId, boardData);
 
         if (status === HTTP_OK) {
-            window.location.href = `/html/board.html?id=${postId}`;
+            window.location.href = `/post/${postId}`;
         } else {
             Dialog('게시글', '게시글 수정 실패');
         }
@@ -216,6 +211,12 @@ const init = async () => {
         location.href = '/html/login.html';
         return;
     }
+
+    const profileImage = resolveImageUrl(
+        data.data.profileImageUrl,
+        DEFAULT_PROFILE_IMAGE,
+    );
+    const modifyId = checkModifyMode();
 
     prependChild(document.body, Header('커뮤니티', 1, profileImage));
 

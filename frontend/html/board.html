@@ -21,9 +21,15 @@
             </picture>
             <h2 class="nickname"></h2>
             <h3 class="createdAt"></h3>
-            <div class="mod hidden">
-                <button id="modifyBtn">수정</button>
-                <button id="deleteBtn">삭제</button>
+            <div class="postActions">
+                <button class="postLikeButton" type="button" aria-pressed="false">
+                    <span class="postLikeIcon" aria-hidden="true">♡</span>
+                    <span class="postLikeCount">0</span>
+                </button>
+                <div class="mod hidden">
+                    <button id="modifyBtn">수정</button>
+                    <button id="deleteBtn">삭제</button>
+                </div>
             </div>
         </div>
     </section>
@@ -32,10 +38,10 @@
         <article class="content"></article>
         <article class="bodyWrap">
             <div class="commentWrap">
-                <button class="countItem likeButton" type="button" aria-pressed="false">
+                <div class="countItem likeCountSummary">
                     <h3></h3>
                     <p>좋아요수</p>
-                </button>
+                </div>
                 <div class="countItem viewCount">
                     <h3></h3>
                     <p>조회수</p>

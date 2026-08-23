@@ -5,17 +5,27 @@ import com.example.boardproject.dto.*;
 import com.example.boardproject.entity.PostProfile;
 import com.example.boardproject.entity.*;
 import com.example.boardproject.entity.UserProfile;
+import com.example.boardproject.query.QueryCountInspector;
 import com.example.boardproject.repository.*;
 import lombok.RequiredArgsConstructor;
+
+
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
 
+import lombok.extern.slf4j.Slf4j;
+
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -27,6 +37,10 @@ public class PostService {
     private final PostProfileRepository postProfileRepository;
     private final ViewerRepository viewerRepository;
     private final S3ImageService s3ImageService;
+
+    private final QueryCountInspector queryCountInspector;
+
+    private final int DEFAULT_PAGE_SIZE=5; // 페이지네이션의 limit값.
 
 
     // 게시글 추가
@@ -91,8 +105,8 @@ public class PostService {
 
         return "정상 수정.";
     }
-
-    // 게시글 전체 조회 (페이지네이션)
+/*
+    // 게시글 전체 조회
     @Transactional(readOnly = true)
     public List<PostGetResponseDto> getPosts(int offset, int limit) {
         return postRepository.findAll()
@@ -108,18 +122,105 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
-    // 게시글 검색
+*/
+
+    // findAll()
+
     @Transactional(readOnly = true)
-    public List<PostGetResponseDto> searchPosts(String keyword, int offset, int limit) {
+    public List<PostGetResponseDto> getPostsFindAll(int offset, int limit) {
         return postRepository.findAll()
                 .stream()
-                .filter(post -> post.getPostTitle().contains(keyword) || post.getPostContent().contains(keyword))
                 .sorted((a, b) -> b.getPostDate().compareTo(a.getPostDate()))
                 .skip(offset)
                 .limit(limit)
                 .map(post -> {
                     UserProfile userProfile = userProfileRepository.findByUserId(post.getUserId());
                     PostProfile postProfile = findPostProfile(post.getPostId());
+                    return PostGetResponseDto.of(post, userProfile, postProfile);
+                })
+                .collect(Collectors.toList());
+    }
+
+
+
+
+    //게시글 목록 조회 - 무한 스크롤링 (cursor형식)
+    @Transactional(readOnly = true)
+    public List<PostGetResponseDto> getPosts(Long userId ,Long cursor) {
+
+
+        PageRequest pageRequest =PageRequest.of(0,DEFAULT_PAGE_SIZE);
+
+        Slice<Post>postList =
+                postRepository.findPostByCursor(
+                        cursor,
+                        pageRequest
+                );
+
+        log.info( //로그로 페이지 네이션 확인
+                "조회된 게시글 수={}, pageSize={}, hasNext={}",
+                postList.getNumberOfElements(),
+                pageRequest.getPageSize(),
+                postList.hasNext()
+        );
+
+        List<Post> posts = postList.getContent();
+
+        // N+1 방지: 게시글마다 작성자/통계 조회하지 않고 페이지 단위로 한번에 배치 조회
+        List<Long> userIds = posts.stream().map(Post::getUserId).distinct().collect(Collectors.toList());
+        List<Long> postIds = posts.stream().map(Post::getPostId).collect(Collectors.toList());
+
+        Map<Long, UserProfile> userProfileById = userProfileRepository.
+                findByUserIdIn(userIds).stream()
+                .collect(Collectors.toMap(UserProfile::getUserId, up -> up));
+
+        Map<Long, PostProfile> postProfileById = postProfileRepository.findByPostIdIn(postIds).stream()
+                .collect(Collectors.toMap(PostProfile::getPostId, pp -> pp));
+
+        return posts.stream()
+
+                //map() : 각 요소들의 형태를 바꾸겠다.
+                //post1 -> dto1 , post2 -> dto2, post3 -> dto3
+                .map(post -> {
+                    UserProfile userProfile = userProfileById.get(post.getUserId()); //작성자 프로필 조회
+                    PostProfile postProfile = postProfileById.get(post.getPostId());
+                    return PostGetResponseDto.of(post, userProfile, postProfile); //dto로 조합
+
+                })
+                .collect(Collectors.toList()); //  collect() : list형태로 만들겠다. [dto1, dto2, dto3]
+    }
+
+    // 게시글 검색- 검색으로 특정 위치로 이동해야하기 때문에 cursorX , offset 형식
+    //현재 offset과 Limit를 JPQL로 변경하는 과정 필요함.
+    @Transactional(readOnly = true)
+    public List<PostGetResponseDto> searchPosts(String keyword, int offset, int limit) {
+        List<Post> posts = postRepository.findSearchPostsByOffset(keyword, offset, limit);
+
+        log.info( //로그로 검색 페이지네이션 확인
+                "검색된 게시글 수={}, keyword={}, offset={}, limit={}",
+                posts.size(),
+                keyword,
+                offset,
+                limit
+        );
+
+        if (posts.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> userIds = posts.stream().map(Post::getUserId).distinct().collect(Collectors.toList());
+        List<Long> postIds = posts.stream().map(Post::getPostId).collect(Collectors.toList());
+
+        Map<Long, UserProfile> userProfileById = userProfileRepository.findByUserIdIn(userIds).stream()
+                .collect(Collectors.toMap(UserProfile::getUserId, up -> up));
+
+        Map<Long, PostProfile> postProfileById = postProfileRepository.findByPostIdIn(postIds).stream()
+                .collect(Collectors.toMap(PostProfile::getPostId, pp -> pp));
+
+        return posts.stream()
+                .map(post -> {
+                    UserProfile userProfile = userProfileById.get(post.getUserId());
+                    PostProfile postProfile = postProfileById.get(post.getPostId());
                     return PostGetResponseDto.of(post, userProfile, postProfile);
                 })
                 .collect(Collectors.toList());
@@ -145,14 +246,18 @@ public class PostService {
         );
     }
 
-    // 조회수 증가 (버그 수정: Viewer 저장 누락, viewCount 항상 1 세팅 → 증가로 변경)
+    // 조회수 증가
     @Transactional
     public void increaseViewCount(Long postId, Long userId) {
-        ViewerId viewerId = new ViewerId(postId, userId);
-        boolean alreadyViewed = viewerRepository.existsByPostIdAndUserId(postId, userId);
+        Viewer viewer = viewerRepository.findById(new ViewerId(postId, userId)).orElse(null);
 
-        if (!alreadyViewed) {
-            viewerRepository.save(new Viewer(postId, userId));
+        if (viewer == null) {
+            viewer = new Viewer(postId, userId);
+            viewer.updateViewCheck(true);
+            viewerRepository.save(viewer);
+            findPostProfile(postId).updateViewCount(1);
+        } else if (!Boolean.TRUE.equals(viewer.getViewCheck())) {
+            viewer.updateViewCheck(true);
             findPostProfile(postId).updateViewCount(1);
         }
     }
@@ -176,6 +281,15 @@ public class PostService {
         PostProfile postProfile = findPostProfile(postId);
         postProfile.updateLikeCount(1);
         return postProfile.getLikeCount();
+    }
+
+    @Transactional(readOnly = true)
+    public PostLikeResponseDto getLikeStatus(Long postId, Long userId) {
+        Viewer viewer = viewerRepository.findById(new ViewerId(postId, userId)).orElse(null);
+        PostProfile postProfile = findPostProfile(postId);
+        boolean isLiked = viewer != null && Boolean.TRUE.equals(viewer.getLikeCheck());
+
+        return new PostLikeResponseDto(postProfile.getLikeCount(), isLiked);
     }
 
     // 좋아요 취소

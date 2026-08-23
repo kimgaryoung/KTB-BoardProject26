@@ -45,13 +45,31 @@
 }
 
 .boardItem .info h3,
-.boardItem .info b {
+.boardItem .info b,
+.boardItem .info .likeButton {
     font-size: 15px;
     font-weight: 200;
     line-height: 17px;
     letter-spacing: -0.02em;
 
     color: black;
+}
+
+.boardItem .info .likeButton {
+    display: inline-flex;
+    align-items: center;
+    column-gap: 4px;
+    border: none;
+    padding: 0;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.boardItem .info .likeButton.is-active,
+.boardItem .info .likeButton.is-active b {
+    color: #7f6aee;
+    font-weight: 700;
 }
 
 .boardItem .writerInfo {

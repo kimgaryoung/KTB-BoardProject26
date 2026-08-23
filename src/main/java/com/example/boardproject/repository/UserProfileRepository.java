@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -12,6 +13,10 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long>{
 
     @Query("select u from UserProfile u where u.userId = :userId")
     UserProfile findByUserId(Long userId);
+
+    // 게시글 목록 조회 시 in으로 사용자 id를 한번에 조회해서 N+1 방지
+    //JPA가 메소드 이름을 읽어서 자동 구현해줌 findByUserIdIn -> where userId IN (..)
+    List<UserProfile> findByUserIdIn(List<Long> userIds);
 
     @Query("select c from Comment c where  c.commentId=:commentId")
     Comment findByCommentId(Integer commentId);

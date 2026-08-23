@@ -36,4 +36,7 @@ out/
 ### VS Code ###
 .vscode/
 
+#로컬 개방용으로만 쓰는 거.
+src/main/resources/application-local.yml
+frontend/.env.example
 

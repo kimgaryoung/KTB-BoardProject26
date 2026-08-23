@@ -42,16 +42,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
 
         String uri = request.getServletPath();
-        String method = request.getMethod();
-
-        // GET /posts, GET /posts/1 는 토큰 없이 통과
-        if (method.equals("GET") && PatternMatchUtils.simpleMatch("/posts*", uri)) {
-            return true;
-        }
         return PatternMatchUtils.simpleMatch(WHITE_LIST, uri);
     }
 
-
+    // GET /posts, GET /posts/1 는 토큰이 없어도(비로그인) 통과시키되,
+    // 토큰이 있으면 파싱해서 principal을 채워야 조회수 증가 등 로그인 전용 로직이 동작함.
+    private boolean isOptionalAuth(HttpServletRequest request) {
+        return request.getMethod().equals("GET")
+                && PatternMatchUtils.simpleMatch("/posts*", request.getServletPath());
+    }
 
 
     //3.실제 토큰 검증 로직 -모든 요청마다 실행함.
@@ -74,7 +73,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         }
+
+        boolean optionalAuth = isOptionalAuth(request);
+
         if (token == null) {
+            if (optionalAuth) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
@@ -103,6 +109,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (Exception exception) {
             //System.out.println("JWT 필터 예외: " + exception.getMessage()); // 이미 있으면 그대로
 
+            if (optionalAuth) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
     }

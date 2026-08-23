@@ -29,13 +29,43 @@ const formatCount = value => {
 };
 
 const setLikeButtonState = (button, isLiked) => {
+    const iconElement = button.querySelector('.postLikeIcon');
+
     button.classList.toggle('is-active', isLiked);
     button.setAttribute('aria-pressed', isLiked ? 'true' : 'false');
+    button.setAttribute(
+        'aria-label',
+        isLiked ? '게시글 좋아요 취소' : '게시글 좋아요',
+    );
+
+    if (iconElement) {
+        iconElement.textContent = isLiked ? '♥' : '♡';
+    }
+};
+
+const getApiErrorCode = ({ code, data }) => {
+    if (code) return code;
+    if (typeof data === 'string') return data;
+    return null;
+};
+
+const setLikeCountText = (countElements, likeCount) => {
+    countElements.forEach(element => {
+        element.textContent = formatCount(likeCount);
+    });
 };
 
 const getQueryString = name => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(name);
+};
+
+const getPostId = () => {
+    const queryPostId = getQueryString('id');
+    if (queryPostId) return queryPostId;
+
+    const pathMatch = window.location.pathname.match(/^\/post\/([^/]+)$/);
+    return pathMatch ? pathMatch[1] : null;
 };
 
 const getBoardDetail = async postId => {
@@ -77,62 +107,81 @@ const setBoardDetail = data => {
     const contentElement = document.querySelector('.content');
     contentElement.textContent = data.content;
 
-    const likeButtonElement = document.querySelector('.likeButton');
-    const likeCountElement = likeButtonElement.querySelector('h3');
+    const likeButtonElement = document.querySelector('.postLikeButton');
+    const likeButtonCountElement = likeButtonElement.querySelector('.postLikeCount');
+    const likeSummaryCountElement = document.querySelector('.likeCountSummary h3');
+    const likeCountElements = [likeButtonCountElement, likeSummaryCountElement];
+    const postId = data.id ?? getPostId();
+    let likeCount = Number(data.likeCount) || 0;
     let isLiked = Boolean(data.isLiked);
     let isLikeLoading = false;
 
-    likeCountElement.textContent = formatCount(data.likeCount);
+    setLikeCountText(likeCountElements, likeCount);
     setLikeButtonState(likeButtonElement, isLiked);
 
     likeButtonElement.addEventListener('click', async () => {
         if (isLikeLoading) return;
         isLikeLoading = true;
+        likeButtonElement.disabled = true;
+
+        const previousIsLiked = isLiked;
+        const previousLikeCount = likeCount;
+        const nextIsLiked = !isLiked;
+        const nextLikeCount = Math.max(0, likeCount + (nextIsLiked ? 1 : -1));
+
+        isLiked = nextIsLiked;
+        likeCount = nextLikeCount;
+        setLikeButtonState(likeButtonElement, isLiked);
+        setLikeCountText(likeCountElements, likeCount);
 
         try {
-            if (!isLiked) {
-                const { ok, status, code, data: likeData } = await likePost(
-                    data.id,
-                );
-                if (ok) {
-                    isLiked = true;
-                    setLikeButtonState(likeButtonElement, isLiked);
-                    if (likeData && likeData.likeCount !== undefined) {
-                        likeCountElement.textContent = formatCount(
-                            likeData.likeCount,
-                        );
-                    }
-                } else if (status === 409 && code === 'POST_ALREADY_LIKED') {
-                    isLiked = true;
-                    setLikeButtonState(likeButtonElement, isLiked);
-                } else if (status === HTTP_NOT_AUTHORIZED) {
-                    window.location.href = '/html/login.html';
-                } else {
-                    Dialog('좋아요 실패', '좋아요 처리에 실패하였습니다.');
+            const {
+                ok,
+                status,
+                code,
+                data: likeData,
+            } = nextIsLiked
+                ? await likePost(postId)
+                : await unlikePost(postId);
+            const apiErrorCode = getApiErrorCode({ code, data: likeData });
+
+            if (ok) {
+                if (likeData && likeData.likeCount !== undefined) {
+                    likeCount = Number(likeData.likeCount);
+                    setLikeCountText(likeCountElements, likeCount);
                 }
+                if (likeData && likeData.isLiked !== undefined) {
+                    isLiked = Boolean(likeData.isLiked);
+                    setLikeButtonState(likeButtonElement, isLiked);
+                }
+            } else if (
+                status === 409 &&
+                apiErrorCode === 'POST_ALREADY_LIKED'
+            ) {
+                isLiked = Boolean(likeData && likeData.isLiked);
+                likeCount = Number(likeData && likeData.likeCount) || likeCount;
+                setLikeButtonState(likeButtonElement, isLiked);
+                setLikeCountText(likeCountElements, likeCount);
+            } else if (
+                status === 409 &&
+                apiErrorCode === 'POST_ALREADY_UNLIKED'
+            ) {
+                isLiked = Boolean(likeData && likeData.isLiked);
+                likeCount = Number(likeData && likeData.likeCount) || likeCount;
+                setLikeButtonState(likeButtonElement, isLiked);
+                setLikeCountText(likeCountElements, likeCount);
+            } else if (status === HTTP_NOT_AUTHORIZED) {
+                window.location.href = '/html/login.html';
             } else {
-                const { ok, status, code, data: likeData } = await unlikePost(
-                    data.id,
-                );
-                if (ok) {
-                    isLiked = false;
-                    setLikeButtonState(likeButtonElement, isLiked);
-                    if (likeData && likeData.likeCount !== undefined) {
-                        likeCountElement.textContent = formatCount(
-                            likeData.likeCount,
-                        );
-                    }
-                } else if (status === 409 && code === 'POST_ALREADY_UNLIKED') {
-                    isLiked = false;
-                    setLikeButtonState(likeButtonElement, isLiked);
-                } else if (status === HTTP_NOT_AUTHORIZED) {
-                    window.location.href = '/html/login.html';
-                } else {
-                    Dialog('좋아요 취소 실패', '좋아요 취소에 실패하였습니다.');
-                }
+                isLiked = previousIsLiked;
+                likeCount = previousLikeCount;
+                setLikeButtonState(likeButtonElement, isLiked);
+                setLikeCountText(likeCountElements, likeCount);
+                Dialog('좋아요 실패', '좋아요 처리에 실패하였습니다.');
             }
         } finally {
             isLikeLoading = false;
+            likeButtonElement.disabled = false;
         }
     });
 
@@ -149,7 +198,7 @@ const setBoardModify = async (data, myInfo) => {
         modifyElement.classList.remove('hidden');
 
         const modifyBtnElement = document.querySelector('#deleteBtn');
-        const postId = getQueryString('id');
+        const postId = getPostId();
         modifyBtnElement.addEventListener('click', () => {
             Dialog(
                 '게시글을 삭제하시겠습니까?',
@@ -189,7 +238,7 @@ const setBoardComment = (comments, myInfo, postId) => {
 
 const addComment = async () => {
     const comment = document.querySelector('textarea').value;
-    const pageId = getQueryString('id');
+    const pageId = getPostId();
 
     const { ok } = await writeComment(pageId, comment);
 
@@ -247,7 +296,7 @@ const init = async () => {
 
         prependChild(document.body, Header('커뮤니티', 2, profileImage));
 
-        const pageId = getQueryString('id');
+        const pageId = getPostId();
 
         const pageData = await getBoardDetail(pageId);
 

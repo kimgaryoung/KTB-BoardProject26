@@ -6,9 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface PostProfileRepository extends JpaRepository<PostProfile, Long> {
     PostProfile findByPostId(Long postId);
+
+    // 게시글 목록 조회 시 N+1 방지용 배치 조회
+    List<PostProfile> findByPostIdIn(List<Long> postIds);
 
 
     //@mapId 덕분에 쿼리 필요 없음.

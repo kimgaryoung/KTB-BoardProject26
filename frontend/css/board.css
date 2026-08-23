@@ -36,8 +36,48 @@
     align-items: center;
     column-gap: 12px;
 }
-.head .mod {
+.head .postActions {
     margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    row-gap: 8px;
+}
+.head .postLikeButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 6px;
+    min-width: 64px;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid #aca0eb;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #454854;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+}
+.head .postLikeButton.is-active .postLikeIcon {
+    color: #f04452;
+}
+.head .postLikeButton:disabled {
+    cursor: wait;
+    opacity: 0.75;
+}
+.head .postLikeButton:focus-visible {
+    outline: 2px solid #7f6aee;
+    outline-offset: 2px;
+}
+.head .postLikeIcon {
+    font-size: 18px;
+    line-height: 1;
+}
+.head .mod {
+    display: flex;
+    column-gap: 4px;
 }
 .head .mod button {
     padding: 2px 12px;
@@ -52,7 +92,7 @@
     line-height: 1.56em;
 }
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .head .writerWrap .profileImg img {
@@ -157,22 +197,6 @@
     border-radius: 16px;
     background-color: #d9d9d9;
 }
-.commentWrap .likeButton {
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    background-color: #d9d9d9;
-    font: inherit;
-    color: inherit;
-}
-.commentWrap .likeButton.is-active {
-    background-color: #aca0eb;
-}
-.commentWrap .likeButton:focus-visible {
-    outline: 2px solid #7f6aee;
-    outline-offset: 2px;
-}
-
 .commentWrap h3 {
     font-size: 20px;
     font-weight: 700;

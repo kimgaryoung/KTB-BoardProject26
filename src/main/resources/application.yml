@@ -5,6 +5,13 @@ cloud:
       bucket: ${AWS_S3_BUCKET:}
       base-url: ${AWS_S3_BASE_URL:}
 
+
+  #n+1발생 확인을 위해 추가
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.BasicBinder: TRACE
+
 spring:
   application:
     name: BoardProject

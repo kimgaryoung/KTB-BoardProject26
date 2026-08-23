@@ -3,15 +3,16 @@ import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import { authCheck, getServerUrl, prependChild, resolveImageUrl } from '../utils/function.js';
 import { getPosts, searchPosts } from '../api/indexRequest.js';
+import { likePost, unlikePost } from '../api/boardRequest.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const HTTP_NOT_AUTHORIZED = 401;
 const SCROLL_THRESHOLD = 0.9;
-const INITIAL_OFFSET = 5;
 const ITEMS_PER_LOAD = 5;
 const DEFAULT_SORT = 'recent';
 let currentKeyword = '';
 let currentSort = DEFAULT_SORT;
+let cursor = null;
 let offset = 0;
 let isEnd = false;
 let isProcessing = false;
@@ -25,14 +26,14 @@ const updateSortVisibility = () => {
 };
 
 // getBoardItem 함수
-const getBoardItem = async (offsetValue = 0, limitValue = 5) => {
+const getBoardItem = async () => {
     const result =
         currentKeyword.trim() === ''
-            ? await getPosts(offsetValue, limitValue)
+            ? await getPosts(cursor)
             : await searchPosts(
                   currentKeyword,
-                  offsetValue,
-                  limitValue,
+                  offset,
+                  ITEMS_PER_LOAD,
                   currentSort,
               );
     if (!result.ok) {
@@ -75,23 +76,75 @@ const loadBoardItems = async ({ reset = false } = {}) => {
 
     try {
         if (reset) {
+            cursor = null;
             offset = 0;
             isEnd = false;
             resetBoardList();
         }
-        const items = await getBoardItem(offset, ITEMS_PER_LOAD);
+        const items = await getBoardItem();
         if (!items || items.length === 0) {
             isEnd = true;
             return;
         }
         setBoardItem(items);
-        offset += ITEMS_PER_LOAD;
+        if (currentKeyword.trim() === '') {
+            cursor = items[items.length - 1].id;
+        } else {
+            offset += ITEMS_PER_LOAD;
+        }
     } catch (error) {
         console.error('Error fetching items:', error);
         isEnd = true;
     } finally {
         isProcessing = false;
     }
+};
+
+const setItemLikeState = (button, isLiked) => {
+    button.dataset.liked = String(isLiked);
+    button.classList.toggle('is-active', isLiked);
+    button.setAttribute('aria-pressed', String(isLiked));
+};
+
+const addLikeEvent = () => {
+    const boardList = document.querySelector('.boardList');
+    if (!boardList) return;
+
+    boardList.addEventListener('click', async event => {
+        const button = event.target.closest('.likeButton');
+        if (!button) return;
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (button.dataset.loading === 'true') return;
+        button.dataset.loading = 'true';
+
+        const postId = button.dataset.postId;
+        const isLiked = button.dataset.liked === 'true';
+        const countElement = button.querySelector('b');
+
+        try {
+            const { ok, status, code, data } = isLiked
+                ? await unlikePost(postId)
+                : await likePost(postId);
+
+            if (ok) {
+                setItemLikeState(button, !isLiked);
+                if (data && data.likeCount !== undefined) {
+                    countElement.textContent = data.likeCount;
+                }
+            } else if (status === HTTP_NOT_AUTHORIZED) {
+                window.location.href = '/html/login.html';
+            } else if (
+                (!isLiked && status === 409 && code === 'POST_ALREADY_LIKED') ||
+                (isLiked && status === 409 && code === 'POST_ALREADY_UNLIKED')
+            ) {
+                setItemLikeState(button, !isLiked);
+            }
+        } finally {
+            button.dataset.loading = 'false';
+        }
+    });
 };
 
 const addSearchEvent = () => {
@@ -133,10 +186,6 @@ const addSortEvent = () => {
 
 // 스크롤 이벤트 추가
 const addInfinityScrollEvent = () => {
-    offset = INITIAL_OFFSET;
-    isEnd = false;
-    isProcessing = false;
-
     window.addEventListener('scroll', async () => {
         const hasScrolledToThreshold =
             window.scrollY + window.innerHeight >=
@@ -173,6 +222,7 @@ const init = async () => {
         addSearchEvent();
         addSortEvent();
         addInfinityScrollEvent();
+        addLikeEvent();
     } catch (error) {
         console.error('Initialization failed:', error);
         window.location.href = '/html/login.html';

@@ -36,11 +36,17 @@ const BoardItem = (
     const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
     const profileImageUrl = resolveImageUrl(imgUrl, DEFAULT_PROFILE_IMAGE);
     return `
-    <a href="/html/board.html?id=${postId}">
+    <a href="/post/${postId}">
         <div class="boardItem">
             <h2 class="title">${title}</h2>
             <div class="info">
-                <h3 class="views">좋아요 <b>${likeCount}</b></h3>
+                <button
+                    class="views likeButton"
+                    type="button"
+                    data-post-id="${postId}"
+                    data-liked="false"
+                    aria-pressed="false"
+                >좋아요 <b>${likeCount}</b></button>
                 <h3 class="views">댓글 <b>${commentCount}</b></h3>
                 <h3 class="views">조회수 <b>${viewCount}</b></h3>
                 <p class="date">${formattedDate}</p>

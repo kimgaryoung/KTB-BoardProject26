@@ -13,9 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
-
-
 @RestController
 @RequiredArgsConstructor
 public class PostController {
@@ -57,13 +54,21 @@ public class PostController {
         return ResponseEntity.ok(Result.of("정상 수정."));
     }
 
-    // 게시글 전체 조회 (페이지네이션)
+    // 게시글 목록 조회 (페이지네이션- cursor로 수정 )
+    // @AuthenticationPrincipal
+    //@RequestParm는 URL의 쿼리 파라미터를 메서드 파라미터로 꺼내오는 애노테이션임.(사용자에게 노출되고 조작 가능성이 있어서 노출되도 괜찮은 값만)
+    //ex) GET /v1/posts?postId=1&cursor=1043
+
     @GetMapping("/posts")
-    public ResponseEntity<Result> getPosts(@RequestParam(defaultValue = "0") int offset,
-                                           @RequestParam(defaultValue = "5") int limit) {
-        List<PostGetResponseDto> response = postService.getPosts(offset, limit);
+    public ResponseEntity<Result> getPosts(@AuthenticationPrincipal final PrincipalDetails principal ,
+                                            @RequestParam(required = false) Long cursor) {
+        Long userId = principal != null ? principal.getId():null;
+        List<PostGetResponseDto> response = postService.getPosts(userId, cursor);
         return ResponseEntity.ok(Result.of(response));
     }
+
+
+
 
     // 게시글 검색
     @GetMapping("/posts/search")
@@ -92,11 +97,16 @@ public class PostController {
     @PostMapping("/posts/{postId}/likes")
     public ResponseEntity<Result> likePost(@PathVariable final Long postId,
                                            @AuthenticationPrincipal final PrincipalDetails user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Result.of("UNAUTHORIZED"));
+        }
+
         try {
             Integer likeCount = postService.likePost(postId, user.getId());
-            return ResponseEntity.ok(Result.of(Map.of("likeCount", likeCount)));
+            return ResponseEntity.ok(Result.of(new PostLikeResponseDto(likeCount, true)));
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Result.of("POST_ALREADY_LIKED"));
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Result.of("POST_ALREADY_LIKED", postService.getLikeStatus(postId, user.getId())));
         }
     }
 
@@ -104,11 +114,18 @@ public class PostController {
     @DeleteMapping("/posts/{postId}/likes")
     public ResponseEntity<Result> unlikePost(@PathVariable final Long postId,
                                              @AuthenticationPrincipal final PrincipalDetails user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Result.of("UNAUTHORIZED"));
+        }
+
         try {
             Integer likeCount = postService.unlikePost(postId, user.getId());
-            return ResponseEntity.ok(Result.of(Map.of("likeCount", likeCount)));
+            return ResponseEntity.ok(Result.of(new PostLikeResponseDto(likeCount, false)));
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Result.of("POST_ALREADY_UNLIKED"));
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Result.of("POST_ALREADY_UNLIKED", postService.getLikeStatus(postId, user.getId())));
         }
     }
+
+
 }
