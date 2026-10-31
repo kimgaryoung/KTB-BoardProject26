@@ -61,7 +61,7 @@ h2 {
     width: 80%;
     height: 33px;
     margin-top: 20px;
-    border-radius: 4px;
+    border-radius: 0;
     cursor: pointer;
 
     background-color: #aca0eb;
@@ -94,3 +94,11 @@ h2 {
     font-weight: 400;
     line-height: normal;
 }
+
+.photoHelp { font-size: 13px; line-height: 1.6; color: #746c86; padding: 0 12px; }
+.photoPreview { width: 100%; padding: 12px; border: 1px solid #ddd4f0; border-radius: 0; background: white; }
+.photoPreview[hidden] { display: none; }
+.photoPreview img { display: block; max-width: 100%; max-height: 360px; object-fit: contain; margin: 0 auto; border-radius: 0; }
+.photoPreview figcaption { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+#imagePreviewText { font-size: 13px; color: #6f657c; overflow-wrap: anywhere; }
+.wrap #removeImage { width: auto; height: auto; flex-shrink: 0; margin: 0; padding: 8px 12px; background: #f5e8ed; color: #a34261; border-radius: 0; }

@@ -1,0 +1,67 @@
+@import url('./common/layout.css');
+@import url('../component/header/header.css');
+
+body.siteBoardPage { width: min(100%, 720px); margin: 0 auto; }
+.siteBoardPage header { grid-template-columns: 40px 1fr 64px; }
+.siteBoardPage header h1 { font-size: clamp(20px, 5vw, 28px); }
+
+body:has(.communityExplorer) { width: min(100%, 720px); margin: 0 auto; }
+body:has(.communityExplorer) header { grid-template-columns: 40px 1fr 64px; }
+body:has(.communityExplorer) header h1 { font-size: clamp(20px, 5vw, 28px); }
+.accountLink { grid-area: rbtn; color: #6550cd; font-size: 14px; white-space: nowrap; }
+.communityShell { padding: 142px 24px 32px; gap: 24px; }
+.communityIntro { width: 100%; }
+.communityEyebrow { color: #7460cf; font-size: 12px; letter-spacing: .1em; margin-bottom: 10px; }
+.communityIntro h1 { color: #29253c; font-size: 30px; line-height: 1.4; overflow-wrap: anywhere; }
+.communityIntro p:last-child { color: #6b677b; line-height: 1.7; margin-top: 10px; overflow-wrap: anywhere; }
+.communityExplorer { width: 100%; padding: 20px; border: 1px solid #e3def4; border-radius: 0; background: #fff; }
+.communityExplorer [hidden] { display: none !important; }
+.communityExplorer label { display: block; font-size: 14px; font-weight: 700; color: #49415f; margin-bottom: 8px; padding: 0; border: 0; }
+.communitySearchRow { display: flex; gap: 8px; }
+.communityExplorer input, .communityExplorer textarea { min-width: 0; width: 100%; border: 1px solid #dcd6ed; border-radius: 0; padding: 12px; font: inherit; background: #faf9fd; }
+.communitySearchRow input { flex: 1; font-size: 14px; }
+.communityExplorer button { width: auto; height: auto; margin: 0; padding: 10px 16px; border: 0; border-radius: 0; color: white; background: #7760d6; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+.communityExplorer button:disabled { opacity: .6; cursor: wait; }
+.communityExplorer .secondaryButton { background: #f1edfb; color: #6550bc; }
+.communityCreateToggle { margin-top: 12px !important; }
+.communitySearchResults { padding-top: 16px; }
+.communitySearchStatus, .communityCreateStatus { color: #716980; font-size: 13px; line-height: 1.6; }
+.communityResultsList { display: grid; gap: 8px; margin: 10px 0; }
+.communityResultRow { display: flex; gap: 8px; align-items: stretch; min-width: 0; }
+.communityResultRow .communityResult { flex: 1; min-width: 0; }
+.communityExplorer .communityVisibilityAction { align-self: center; padding: 8px 10px; font-size: 12px; white-space: nowrap; }
+.communityVisibilityTools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.communityVisibilityTools span, .communityVisibilityStatus { color: #776d88; font-size: 12px; line-height: 1.6; }
+.communityVisibilityStatus:not(:empty) { margin-top: 12px; }
+.communityExplorer .communityHiddenToggle { font-size: 12px; padding: 8px 10px; }
+.communityHideRoom { border: 1px solid #dfd5ef; background: #f1edfb; color: #715f94; padding: 8px 12px; border-radius: 0; cursor: pointer; font: inherit; font-size: 13px; }
+.communityHideRoom:disabled { opacity: .6; cursor: wait; }
+.communityResult { display: flex; flex-direction: column; gap: 5px; border: 1px solid #eae6f3; padding: 14px; border-radius: 0; color: #3f3659; overflow-wrap: anywhere; }
+.communityResult:hover { border-color: #a18cde; background: #faf8ff; }
+.communityResult strong { font-size: 16px; }
+.communityResult span { font-size: 13px; line-height: 1.6; color: #797284; }
+.communityCreateForm { border-top: 1px solid #eee9f7; padding-top: 16px; margin-top: 16px; display: grid; gap: 10px; }
+.communityCreateForm label { margin: 0; }
+.communityCreateForm label span { color: #8b8498; font-weight: 400; }
+.communityCreateStatus a, .communityBackLink { color: #6d54c7; font-size: 14px; }
+.communityExplorer :is(input, textarea, button, a):focus-visible { outline: 2px solid #8f76dc; outline-offset: 3px; }
+.communityTools { width: 90%; display: grid; gap: 16px; margin-bottom: 24px; }
+.communityContext { padding: 12px; border-radius: 0; background: #eee8fb; color: #665095; width: 100%; overflow-wrap: anywhere; }
+.postListHeading { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 12px; }
+.postListHeading h2 { font-size: 20px; color: #393248; }
+.writePostLink { background: #7760d6; color: white; padding: 10px 16px; border: 0; border-radius: 0; white-space: nowrap; cursor: pointer; }
+.postListStatus { width: 100%; color: #777181; text-align: center; padding: 16px; line-height: 1.6; }
+.postSearchForm { width: 100%; display: flex; gap: 8px; }
+.postSearchForm input { flex: 1; min-width: 0; border: 1px solid #ddd5ec; border-radius: 0; padding: 12px; }
+.postSearchForm button { background: #e9e2f8; color: #6550bc; border: 0; border-radius: 0; padding: 10px 16px; cursor: pointer; }
+body:has(.communityExplorer) .boardItem { background: white; }
+body:has(.communityExplorer) .boardItem .info { flex-wrap: wrap; gap: 12px; }
+body:has(.communityExplorer) .boardItem .date { margin-left: 0; }
+@media (max-width: 480px) {
+    .communityShell { padding-left: 16px; padding-right: 16px; }
+    .communityExplorer { padding: 14px; }
+    .communityIntro h1 { font-size: 25px; }
+    body:has(.communityExplorer) .commentWrap { gap: 8px; }
+    body:has(.communityExplorer) .commentWrap .countItem { width: 86px; }
+    body:has(.communityExplorer) .head .writerWrap { flex-wrap: wrap; }
+}

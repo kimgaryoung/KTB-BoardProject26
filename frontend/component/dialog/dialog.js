@@ -4,6 +4,10 @@
  * @param {Function} submitCallBack 확인 버튼을 눌렀을 때 실행 될 콜백 함수, 작성하지 않으면 확인, 취소 동일한 동작으로 다이얼로그를 닫음
  * @param {alert | textarea} type 다이얼로그 타입
  */
+/*
+ * 기능 : 공통 알림·확인 창 표시
+ * 설명 : 제목과 설명을 보여주고 확인 시 전달받은 콜백을 실행합니다.
+ */
 const Dialog = (title, description, submitCallBack, type = 'alert') => {
     const wrap = document.createElement('div');
     const titleWrap = document.createElement('h2');

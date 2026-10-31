@@ -3,11 +3,13 @@ package com.example.boardproject.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
+@ConditionalOnProperty(name = "app.images.storage", havingValue = "s3", matchIfMissing = true)
 public class S3Config {
 
     //260627 - IAM Role 또는 환경변수 자격 증명을 사용하는 S3 클라이언트 추가

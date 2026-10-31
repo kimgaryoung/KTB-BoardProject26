@@ -10,6 +10,7 @@ import {
 } from '../utils/function.js';
 import { userModify, userDelete } from '../api/modifyInfoRequest.js';
 import { requestJson } from '../utils/request.js';
+import { uploadProfileImage } from '../utils/profileImage.js';
 
 const emailTextElement = document.querySelector('#id');
 const nicknameInputElement = document.querySelector('#nickname');
@@ -18,12 +19,11 @@ const withdrawBtnElement = document.querySelector('#withdrawBtn');
 const nicknameHelpElement = document.querySelector(
     '.inputBox p[name="nickname"]',
 );
-const resultElement = document.querySelector('.inputBox p[name="result"]');
 const modifyBtnElement = document.querySelector('#signupBtn');
 const profilePreview = document.querySelector('#profilePreview');
 const removeProfileButton = document.querySelector('#removeProfileButton');
 const authDataReponse = await authCheck();
-const authData = await authDataReponse.json();
+const authData = authDataReponse ? await authDataReponse.json() : { data: {} };
 const changeData = {
     nickname: authData.data.nickname,
     profileImageUrl: authData.data.profileImageUrl,
@@ -31,13 +31,18 @@ const changeData = {
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const HTTP_OK = 200;
-const HTTP_CREATED = 201;
+const profileHelp = document.querySelector('#profileStatus');
+let profileVersion = 0;
+let uploading = false;
+let saving = false;
+let nicknameValid = true;
 
+/*
+ * 기능 : 기존 회원정보 표시
+ * 설명 : 현재 이메일·닉네임·프로필 사진을 폼에 채우고 사진 제거 버튼 상태를 맞춥니다.
+ */
 const setData = data => {
-    if (
-        // data.profileImageUrl === DEFAULT_PROFILE_IMAGE ||
-        data.profileImageUrl === null
-    ) {
+    if (!data.profileImageUrl) {
         profilePreview.src = DEFAULT_PROFILE_IMAGE;
         if (removeProfileButton) removeProfileButton.style.display = 'none';
     } else {
@@ -46,138 +51,95 @@ const setData = data => {
             DEFAULT_PROFILE_IMAGE,
         );
         if (removeProfileButton) removeProfileButton.style.display = 'flex';
-
-        const profileImageUrl = data.profileImageUrl;
-        const fileName = profileImageUrl.split('/').pop();
-        localStorage.setItem('profileImageUrl', data.profileImageUrl);
-
-        const profileImage = new File(
-            [resolveImageUrl(profileImageUrl)],
-            fileName,
-            { type: '' },
-        );
-
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(profileImage);
-        profileInputElement.files = dataTransfer.files;
     }
     emailTextElement.textContent = data.email;
     nicknameInputElement.value = data.nickname;
 };
 
+/*
+ * 기능 : 회원정보 변경 여부 확인
+ * 설명 : 기존 닉네임·사진 주소와 편집값을 비교해 저장 버튼 상태를 결정합니다.
+ */
 const observeData = () => {
-    const button = document.querySelector('#signupBtn');
-    if (
-        authData.data.nickname !== changeData.nickname ||
-        authData.data.profileImageUrl !== changeData.profileImageUrl
-    ) {
-        button.disabled = false;
-        button.style.backgroundColor = '#7F6AEE';
-    } else {
-        button.disabled = true;
-        button.style.backgroundColor = '#ACA0EB';
-    }
+    const changed = authData.data.nickname !== changeData.nickname ||
+        authData.data.profileImageUrl !== changeData.profileImageUrl;
+    modifyBtnElement.disabled = !changed || !nicknameValid || uploading || saving;
+    modifyBtnElement.style.backgroundColor = modifyBtnElement.disabled ? '#ACA0EB' : '#7F6AEE';
 };
 
+/*
+ * 기능 : 회원정보 편집값 검사
+ * 설명 : 닉네임 형식과 중복 여부를 확인하고 프로필 사진 변경을 편집 데이터에 반영합니다.
+ */
 const changeEventHandler = async (event, uid) => {
-    const button = document.querySelector('#signupBtn');
-    if (uid == 'nickname') {
+    if (uid === 'nickname') {
         const value = event.target.value;
-        const isValidNickname = validNickname(value);
-        const helperElement = nicknameHelpElement;
-        let isComplete = false;
-        if (value == '' || value == null) {
-            helperElement.textContent = '*닉네임을 입력해주세요.';
-        } else if (!isValidNickname) {
-            helperElement.textContent =
-                '*닉네임은 2~10자의 영문자, 한글 또는 숫자만 사용할 수 있습니다. 특수 문자와 띄어쓰기는 사용할 수 없습니다.';
+        nicknameValid = false;
+        changeData.nickname = value;
+        observeData();
+        if (!validNickname(value)) {
+            nicknameHelpElement.textContent = '*닉네임은 2~10자의 영문자, 한글 또는 숫자로 입력해주세요.';
+        } else if (value === authData.data.nickname) {
+            nicknameValid = true;
+            nicknameHelpElement.textContent = '';
         } else {
-            const { status } = await checkNickname(value);
-            if (status === HTTP_OK) {
-                helperElement.textContent = '';
-                isComplete = true;
-            } else if (authData.data.nickname === value) {
-                helperElement.textContent = '';
-                button.disabled = true;
-                button.style.backgroundColor = '#ACA0EB';
-                return;
-            } else {
-                helperElement.textContent = '*중복된 닉네임 입니다.';
-                button.disabled = true;
-                button.style.backgroundColor = '#ACA0EB';
-                return;
-            }
-        }
-        if (isComplete) {
-            changeData.nickname = value;
-        } else {
-            changeData.nickname = authData.data.nickname;
-        }
-    } else if (uid == 'profile') {
-        // 사용자가 선택한 파일
-        const file = event.target.files[0];
-        if (!file) {
-            localStorage.removeItem('profileImageUrl');
-            profilePreview.src = DEFAULT_PROFILE_IMAGE;
-            changeData.profileImageUrl = null;
-            if (removeProfileButton) removeProfileButton.style.display = 'none';
-        } else {
-            const formData = new FormData();
-            formData.append('profileImage', file);
-
-            // 파일 업로드를 위한 POST 요청 실행
             try {
-                const { ok, data } = await requestJson(
-                    `${getServerUrl()}/v1/users/upload/profile-image`,
-                    {
-                        method: 'POST',
-                        body: formData,
-                    },
-                );
-
-                if (!ok) throw new Error('서버 응답 오류');
-                localStorage.setItem(
-                    'profileImageUrl',
-                    data.profileImageUrl,
-                );
-                changeData.profileImageUrl = data.profileImageUrl;
-                profilePreview.src = resolveImageUrl(
-                    data.profileImageUrl,
-                    DEFAULT_PROFILE_IMAGE,
-                );
-                if (removeProfileButton)
-                    removeProfileButton.style.display = 'flex';
-            } catch (error) {
-                console.error('업로드 중 오류 발생:', error);
+                const result = await checkNickname(value);
+                if (nicknameInputElement.value !== value) return;
+                nicknameValid = result.status === HTTP_OK;
+                nicknameHelpElement.textContent = nicknameValid ? '' : '*사용할 수 없는 닉네임입니다.';
+            } catch {
+                nicknameHelpElement.textContent = '*닉네임 확인에 실패했습니다. 다시 입력해주세요.';
             }
+        }
+    } else if (uid === 'profile') {
+        const file = event.target.files[0];
+        if (!file) return;
+        const current = ++profileVersion;
+        uploading = true;
+        profileHelp.textContent = '사진을 업로드하는 중…';
+        observeData();
+        try {
+            const url = await uploadProfileImage(file);
+            if (current !== profileVersion) return;
+            changeData.profileImageUrl = url;
+            profilePreview.src = resolveImageUrl(url, DEFAULT_PROFILE_IMAGE);
+            removeProfileButton.style.display = 'flex';
+            profileHelp.textContent = '사진이 준비됐어요. 수정하기를 눌러 저장해주세요.';
+        } catch (error) {
+            if (current !== profileVersion) return;
+            profileInputElement.value = '';
+            profileHelp.textContent = error.message;
+        } finally {
+            if (current === profileVersion) { uploading = false; observeData(); }
         }
     }
     observeData();
 };
 
+/*
+ * 기능 : 회원정보 수정 저장
+ * 설명 : 변경 정보를 서버에 보내고 결과 메시지를 다음 화면에서 보여주도록 저장합니다.
+ */
 const sendModifyData = async () => {
-    const button = document.querySelector('#signupBtn');
-
-    if (!button.disabled) {
-        if (changeData.nickname === '') {
-            Dialog('필수 정보 누락', '닉네임을 입력해주세요.');
-        } else {
-            const { status } = await userModify(changeData);
-
-            if (status === HTTP_OK) {
-                localStorage.removeItem('profileImageUrl');
-                saveToastMessage('수정완료');
-                location.href = '/html/modifyInfo.html';
-            } else {
-                localStorage.removeItem('profileImageUrl');
-                saveToastMessage('수정실패');
-                location.href = '/html/modifyInfo.html';
-            }
-        }
-    }
+    if (modifyBtnElement.disabled) return;
+    saving = true;
+    observeData();
+    try {
+        const result = await userModify(changeData);
+        if (!result.ok) throw new Error('회원정보를 저장하지 못했어요. 다시 시도해주세요.');
+        saveToastMessage('수정완료');
+        location.href = '/html/modifyInfo.html';
+    } catch (error) {
+        Dialog('회원정보 수정 실패', error.message);
+    } finally { saving = false; observeData(); }
 };
 
 // 회원 탈퇴
+/*
+ * 기능 : 회원 탈퇴 확인 및 요청
+ * 설명 : 사용자 확인 후 탈퇴 API를 호출하고 성공하면 로그아웃을 요청한 뒤 로그인 화면으로 이동합니다.
+ */
 const deleteAccount = async () => {
     const callback = async () => {
         const { status } = await userDelete();
@@ -204,8 +166,12 @@ const deleteAccount = async () => {
     );
 };
 
+/*
+ * 기능 : 회원정보 편집 이벤트 연결
+ * 설명 : 닉네임·사진 변경, 사진 제거, 저장과 탈퇴 버튼을 연결합니다.
+ */
 const addEvent = () => {
-    nicknameInputElement.addEventListener('change', event =>
+    nicknameInputElement.addEventListener('input', event =>
         changeEventHandler(event, 'nickname'),
     );
     profileInputElement.addEventListener('change', event =>
@@ -213,7 +179,9 @@ const addEvent = () => {
     );
     if (removeProfileButton) {
         removeProfileButton.addEventListener('click', () => {
-            localStorage.removeItem('profileImageUrl');
+            ++profileVersion;
+            uploading = false;
+            profileHelp.textContent = '수정하기를 누르면 기본 프로필로 저장됩니다.';
             profilePreview.src = DEFAULT_PROFILE_IMAGE;
             changeData.profileImageUrl = null;
             profileInputElement.value = '';
@@ -225,6 +193,10 @@ const addEvent = () => {
     withdrawBtnElement.addEventListener('click', async () => deleteAccount());
 };
 
+/*
+ * 기능 : 임시 결과 메시지 표시
+ * 설명 : 수정 결과를 잠시 보여준 뒤 요소를 제거하고 선택적인 콜백을 실행합니다.
+ */
 const showToast = (message, duration = 3000, callback = null) => {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
@@ -254,11 +226,19 @@ const showToast = (message, duration = 3000, callback = null) => {
     }, duration);
 };
 
+/*
+ * 기능 : 화면 이동 전 결과 메시지 보관
+ * 설명 : sessionStorage에 저장해 새로 열린 수정 화면에서도 결과를 보여줄 수 있게 합니다.
+ */
 const saveToastMessage = message => {
     sessionStorage.setItem('toastMessage', message);
 };
 
 // 토스트 메시지 표시 및 저장소에서 삭제
+/*
+ * 기능 : 보관된 결과 메시지 표시
+ * 설명 : 저장한 메시지를 화면에 띄우고 표시가 끝나면 임시 값을 지웁니다.
+ */
 const displayToastFromStorage = () => {
     const message = sessionStorage.getItem('toastMessage');
     if (message) {
@@ -269,15 +249,19 @@ const displayToastFromStorage = () => {
     }
 };
 
+/*
+ * 기능 : 회원정보 수정 화면 초기화
+ * 설명 : 인증된 사용자 정보로 헤더와 폼을 채우고 편집 이벤트 및 결과 메시지를 준비합니다.
+ */
 const init = () => {
     const profileImage =
         resolveImageUrl(authData.data.profileImageUrl, DEFAULT_PROFILE_IMAGE);
 
-    prependChild(document.body, Header('커뮤니티', 2, profileImage));
+    prependChild(document.body, Header('마크안에 사람이 살잖아', 2, profileImage));
     setData(authData.data);
     observeData();
     addEvent();
     displayToastFromStorage();
 };
 
-init();
+if (authDataReponse) init();

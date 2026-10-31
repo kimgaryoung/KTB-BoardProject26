@@ -10,11 +10,12 @@
             crossorigin="anonymous"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.6/lottie.min.js"></script>
-    <title>로그인</title>
+    <title>로그인 | 마크안에 사람이 살잖아</title>
 </head>
-<body>
+<body class="loginPage">
 <section class="wrap">
     <h1 class="title">로그인</h1>
+    <p id="loginNotice" class="loginNotice" role="status" hidden></p>
     <article>
         <div class="inputBox">
             <label for="id">이메일</label>
@@ -37,7 +38,7 @@
             <p class="helperText"></p>
         </div>
         <div class="buttons">
-            <button id="login">로그인</button>
+            <button id="login" disabled>로그인</button>
             <a href="signup.html">회원가입</a>
         </div>
     </article>

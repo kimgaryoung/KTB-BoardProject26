@@ -1,3 +1,8 @@
+app:
+  images:
+    storage: ${IMAGE_STORAGE:s3}
+    local-directory: ${IMAGE_LOCAL_DIRECTORY:./uploads}
+
 cloud:
   aws:
     region: ${AWS_REGION:ap-northeast-2}

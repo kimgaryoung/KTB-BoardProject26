@@ -26,6 +26,10 @@ const modifyData = {
     passwordCheck: '',
 };
 
+/*
+ * 기능 : 비밀번호 변경 버튼 상태 관리
+ * 설명 : 새 비밀번호와 확인값이 모두 존재하고 일치하는지 확인합니다.
+ */
 const observeData = () => {
     const { password, passwordCheck } = modifyData;
 
@@ -39,6 +43,10 @@ const observeData = () => {
     }
 };
 
+/*
+ * 기능 : 새 비밀번호 규칙과 확인값 검사
+ * 설명 : 비밀번호 형식 및 재입력 일치 여부를 검사해 안내와 편집 데이터를 갱신합니다.
+ */
 const blurEventHandler = async (event, uid) => {
     if (uid == 'pw') {
         const value = event.target.value;
@@ -84,6 +92,10 @@ const blurEventHandler = async (event, uid) => {
     observeData();
 };
 
+/*
+ * 기능 : 비밀번호 입력 이벤트 연결
+ * 설명 : 비밀번호와 확인 입력이 바뀔 때마다 검사 함수를 호출합니다.
+ */
 const addEventForInputElements = () => {
     const InputElement = document.querySelectorAll('input');
     InputElement.forEach(element => {
@@ -93,6 +105,10 @@ const addEventForInputElements = () => {
     });
 };
 
+/*
+ * 기능 : 비밀번호 변경과 재로그인 안내
+ * 설명 : 변경 API가 성공하면 로그아웃을 요청하고 임시 저장값을 정리한 뒤 로그인 화면으로 이동합니다.
+ */
 const modifyPassword = async () => {
     const { password } = modifyData;
 
@@ -116,9 +132,13 @@ const modifyPassword = async () => {
     }
 };
 
+/*
+ * 기능 : 비밀번호 변경 화면 초기화
+ * 설명 : 인증 사용자 헤더와 입력 검사, 저장 버튼을 준비합니다.
+ */
 const init = () => {
     button.addEventListener('click', modifyPassword);
-    prependChild(document.body, Header('커뮤니티', 1, profileImage));
+    prependChild(document.body, Header('마크안에 사람이 살잖아', 1, profileImage));
     addEventForInputElements();
     observeData();
 };

@@ -6,18 +6,25 @@ import {
     validEmail,
     validPassword,
     validNickname,
+    resolveImageUrl,
 } from '../utils/function.js';
 import {
     userSignup,
     checkEmail,
     checkNickname,
-    fileUpload,
 } from '../api/signupRequest.js';
+import { uploadProfileImage } from '../utils/profileImage.js';
 
 const MAX_PASSWORD_LENGTH = 20;
 const HTTP_OK = 200;
 const HTTP_CREATED = 201;
 const HTTP_CONFLICT = 409;
+let profileVersion = 0;
+let profileUploading = false;
+let profileFailed = false;
+const profileStatus = document.querySelector('#profileStatus');
+const profilePreview = document.querySelector('#signupProfilePreview');
+const removeProfile = document.querySelector('#removeSignupProfile');
 
 const signupData = {
     email: '',
@@ -26,8 +33,13 @@ const signupData = {
     profileImageUrl: undefined,
 };
 
+/*
+ * 기능 : 가입 필수 항목 확인
+ * 설명 : 이메일·비밀번호·비밀번호 확인·닉네임이 채워졌는지 확인하고 가입 요청을 시작합니다.
+ */
 const getSignupData = () => {
     const { email, password, passwordCheck, nickname } = signupData;
+    if (profileUploading || profileFailed) return false;
     if (!email || !password || !passwordCheck || !nickname) {
         Dialog('필수 입력 사항', '모든 값을 입력해주세요.');
         return false;
@@ -36,13 +48,14 @@ const getSignupData = () => {
     sendSignupData();
 };
 
+/*
+ * 기능 : 회원가입 제출과 결과 처리
+ * 설명 : 비밀번호 확인값을 제외한 가입 정보와 임시 프로필 주소를 보내고 응답에 따라 로그인 이동 또는 오류 안내를 처리합니다.
+ */
 const sendSignupData = async () => {
     const { passwordCheck, ...props } = signupData;
-    if (localStorage.getItem('profileImageUrl')) {
-        props.profileImageUrl = localStorage.getItem('profileImageUrl');
-    }
 
-    if (props.password > MAX_PASSWORD_LENGTH) {
+    if (props.password.length > MAX_PASSWORD_LENGTH) {
         Dialog('비밀번호', '비밀번호는 20자 이하로 입력해주세요.');
         return;
     }
@@ -51,7 +64,6 @@ const sendSignupData = async () => {
 
     // 응답이 성공적으로 왔을 경우
     if (status === HTTP_CREATED) {
-        localStorage.removeItem('profileImageUrl');
         location.href = '/html/login.html';
     } else {
         if (code === 'ALREADY_EXIST_EMAIL') {
@@ -63,7 +75,6 @@ const sendSignupData = async () => {
         } else {
             Dialog('회원 가입 실패', '잠시 뒤 다시 시도해 주세요', () => {});
         }
-        localStorage.removeItem('profileImageUrl');
         location.href = '/html/signup.html';
     }
 };
@@ -74,19 +85,39 @@ const signupClick = () => {
     signupBtn.addEventListener('click', getSignupData);
 };
 
-const changeEventHandler = async (event, uid) => {
-    if (uid == 'profile') {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const helperElement = document.querySelector(
-            `.inputBox p[name="${uid}"]`,
-        );
-        helperElement.textContent = '';
-    }
+/*
+ * 기능 : 가입 프로필 사진 업로드·미리보기
+ * 설명 : 가장 최근에 선택한 사진만 반영하고 업로드 중에는 가입을 막습니다. 실패 이유를 화면에 표시합니다.
+ */
+const changeEventHandler = async event => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const current = ++profileVersion;
+    profileUploading = true;
+    profileFailed = false;
+    profileStatus.textContent = '사진을 업로드하는 중…';
+    removeProfile.hidden = false;
     observeSignupData();
+    try {
+        const url = await uploadProfileImage(file);
+        if (current !== profileVersion) return;
+        signupData.profileImageUrl = url;
+        profilePreview.src = resolveImageUrl(url);
+        profileStatus.textContent = '회원가입 시 이 사진으로 저장됩니다.';
+    } catch (error) {
+        if (current !== profileVersion) return;
+        profileFailed = true;
+        profileStatus.textContent = error.message;
+        event.target.value = '';
+    } finally {
+        if (current === profileVersion) { profileUploading = false; observeSignupData(); }
+    }
 };
 
+/*
+ * 기능 : 가입 입력 형식과 중복 검사
+ * 설명 : 이메일·닉네임 형식 및 사용 가능 여부, 비밀번호 규칙과 확인값을 검사해 안내 문구를 갱신합니다.
+ */
 const inputEventHandler = async (event, uid) => {
     if (uid == 'email') {
         const value = event.target.value;
@@ -200,6 +231,10 @@ const inputEventHandler = async (event, uid) => {
     observeSignupData();
 };
 
+/*
+ * 기능 : 회원가입 입력 이벤트 연결
+ * 설명 : 프로필 파일 변경과 나머지 입력값 변경을 각각의 검사 함수에 연결합니다.
+ */
 const addEventForInputElements = () => {
     const InputElement = document.querySelectorAll('input');
     InputElement.forEach(element => {
@@ -216,11 +251,17 @@ const addEventForInputElements = () => {
     });
 };
 
+/*
+ * 기능 : 회원가입 버튼 활성화 판단
+ * 설명 : 필수 가입 정보와 형식 검사 결과를 확인해 제출 버튼 상태를 갱신합니다.
+ */
 const observeSignupData = () => {
     const { email, password, passwordCheck, nickname } = signupData;
     const button = document.querySelector('#signupBtn');
 
     if (
+        profileUploading ||
+        profileFailed ||
         !email ||
         !validEmail(email) ||
         !password ||
@@ -237,39 +278,33 @@ const observeSignupData = () => {
     }
 };
 
-const uploadProfileImage = () => {
-    document
-        .getElementById('profile')
-        .addEventListener('change', async event => {
-            const file = event.target.files[0];
-            if (!file) {
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('profileImage', file);
-
-            // 파일 업로드를 위한 POST 요청 실행
-            try {
-                const { ok, data } = await fileUpload(formData);
-                if (!ok) throw new Error('서버 응답 오류');
-                localStorage.setItem(
-                    'profileImageUrl',
-                    data.profileImageUrl,
-                );
-            } catch (error) {
-                console.error('업로드 중 오류 발생:', error);
-            }
-        });
+/*
+ * 기능 : 가입 프로필 사진 선택 취소
+ * 설명 : 진행 중인 이전 응답을 무시하고 기본 사진으로 되돌립니다. 다른 화면·계정의 임시 사진을 재사용하지 않습니다.
+ */
+const resetProfile = () => {
+    ++profileVersion;
+    profileUploading = false;
+    profileFailed = false;
+    signupData.profileImageUrl = undefined;
+    document.querySelector('#profile').value = '';
+    profilePreview.src = '/public/image/profile/default.jpg';
+    profileStatus.textContent = '선택 사항 · 최대 5MB';
+    removeProfile.hidden = true;
+    observeSignupData();
 };
 
+/*
+ * 기능 : 회원가입 화면 초기화
+ * 설명 : 로그인 여부를 확인한 뒤 헤더·입력 검사·가입 버튼·사진 업로드 이벤트를 준비합니다.
+ */
 const init = async () => {
     await authCheckReverse();
-    prependChild(document.body, Header('커뮤니티', 1));
+    prependChild(document.body, Header('마크안에 사람이 살잖아', 1));
     observeSignupData();
     addEventForInputElements();
     signupClick();
-    uploadProfileImage();
+    removeProfile.addEventListener('click', resetProfile);
 };
 
 init();

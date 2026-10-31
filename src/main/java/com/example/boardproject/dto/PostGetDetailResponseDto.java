@@ -16,6 +16,7 @@ import java.util.List;
 public class PostGetDetailResponseDto {
 
     private Long id;
+    private Long communityId;
     private String title;
     private String content;
     private LocalDateTime createdAt;
@@ -52,6 +53,7 @@ public class PostGetDetailResponseDto {
                                               String postImageUrl) {
         return PostGetDetailResponseDto.builder()
                 .id(post.getPostId())
+                .communityId(post.getCommunityId())
                 .title(post.getPostTitle())
                 .content(post.getPostContent())
                 .createdAt(post.getPostDate())

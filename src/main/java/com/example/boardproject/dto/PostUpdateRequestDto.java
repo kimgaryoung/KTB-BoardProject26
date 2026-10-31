@@ -7,10 +7,15 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+/*
+ * 기능 : 게시글 수정 요청 데이터
+ * 설명 : 제목·본문과 사진 제거 여부를 받습니다. 새 사진은 multipart 파일로만 전달하며 기존 attachFileUrl 값은 무시합니다.
+ */
 public class PostUpdateRequestDto {
     private String title;
     private String content;
-    //260627 - 기존 요청 호환 필드이며 이미지 변경은 별도 S3 업로드 API 도입 전까지 미지원
+    private boolean removeImage;
+    // Legacy field is ignored; replacement images are accepted only as uploaded files.
     @Deprecated
     private String attachFileUrl;
 }

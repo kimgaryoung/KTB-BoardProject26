@@ -1,5 +1,8 @@
 HELP.md
 .gradle
+uploads/
+__pycache__/
+*.py[cod]
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/

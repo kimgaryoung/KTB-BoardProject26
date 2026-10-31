@@ -1,0 +1,34 @@
+async page => {
+    const base = 'http://localhost:8080';
+    await page.unroute('**/server-api/v1/**');
+    await page.context().clearCookies();
+    page.setDefaultTimeout(7000);
+    const assert = (value, message) => { if (!value) throw new Error(message); };
+    await page.goto(`${base}/community/1`);
+    await page.getByRole('link', { name: '로그인 후 글 작성', exact: true }).click();
+    await page.waitForURL('**/html/login.html?next=*');
+    await page.locator('header').waitFor();
+    assert(await page.locator('header').evaluate(el => getComputedStyle(el).position) === 'absolute', 'login header stylesheet must be applied');
+    const next = new URL(page.url()).searchParams.get('next');
+    assert(next === '/html/board-write.html?communityId=1', 'login must remember the selected community');
+    await page.locator('#id').fill('community-demo@example.test');
+    await page.locator('#pw').fill('DemoCommunity1!');
+    assert(await page.locator('#id').inputValue() === 'community-demo@example.test', 'login must not corrupt a valid demo email');
+    await page.getByRole('button', { name: '로그인', exact: true }).click();
+    await page.waitForURL('**/html/board-write.html?communityId=1');
+    await page.waitForFunction(() => !document.querySelector('#title').disabled);
+    await page.locator('#title').fill('세션 만료 테스트');
+    await page.locator('#content').fill('이 글은 로그인 만료로 저장되면 안 됩니다.');
+    await page.context().clearCookies();
+    await page.getByRole('button', { name: '완료', exact: true }).click();
+    await page.waitForURL('**/html/login.html?next=*');
+    assert(new URL(page.url()).searchParams.get('next') === '/html/board-write.html?communityId=1', 'expired session must return through login');
+    await page.goto(`${base}/html/board-write.html?communityId=2`);
+    await page.waitForURL('**/html/login.html?next=*');
+    assert(new URL(page.url()).searchParams.get('next') === '/html/board-write.html?communityId=2', 'direct editor entry must require login');
+    const response = await page.request.post(`${base}/server-api/v1/posts`, { data: { title: '차단 테스트', content: '저장되면 안 됩니다.', communityId: 1 } });
+    assert(response.status() === 401, 'direct API creation must require login');
+    await page.goto(`${base}/community/2`);
+    await page.getByRole('link', { name: '로그인 후 글 작성', exact: true }).waitFor();
+    return { passed: ['guest writing link', 'login returns to selected editor', 'valid demo email', 'expired session blocked', 'direct editor blocked', 'anonymous API blocked', 'public browsing preserved'] };
+}

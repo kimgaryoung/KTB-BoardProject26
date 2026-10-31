@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/config.js"></script>
+    <link rel="stylesheet" href="/css/community.css">
+    <link rel="stylesheet" href="/css/posts.css">
+    <title>게시판 | 마크안에 사람이 살잖아</title>
+</head>
+<body class="postsPage">
+<main class="wrap minecraftShell">
+    <section class="minecraftHero">
+        <p class="minecraftEyebrow">MINECRAFT COMMUNITY</p>
+        <h1>함께 만드는 월드 이야기</h1>
+        <p>건축, 생존, 서버와 모드까지. 나의 경험을 나누고 새로운 아이디어를 만나보세요.</p>
+    </section>
+    <section class="minecraftBoard" aria-label="마인크래프트 게시판">
+        <div class="postListHeading">
+            <h2>마인크래프트 게시판</h2>
+            <a id="writeLink" class="writePostLink" hidden>글 작성</a>
+        </div>
+        <form id="postSearch" class="postSearchForm" role="search">
+            <input id="searchInput" type="search" placeholder="건축, 모드, 서버… 게시글을 검색하세요" aria-label="게시글 검색">
+            <button type="submit">검색</button>
+        </form>
+        <section class="boardList" aria-label="게시글 목록"></section>
+        <p class="postListStatus" role="status" aria-live="polite"></p>
+        <button id="loadMorePosts" class="writePostLink" type="button" hidden>게시글 더 보기</button>
+    </section>
+</main>
+<div class="background" aria-hidden="true"></div>
+<script src="/js/posts.js" type="module"></script>
+</body>
+</html>

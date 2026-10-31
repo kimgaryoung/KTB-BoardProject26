@@ -12,11 +12,13 @@ public class PostResponseDto {
 
     private Long id;
     private Long userId;
+    private Long communityId;
 
     public static PostResponseDto from(Post savedPost) {
         return PostResponseDto.builder()
                 .id(savedPost.getPostId())
                 .userId(savedPost.getUserId())
+                .communityId(savedPost.getCommunityId())
                 .build();
     }
 }

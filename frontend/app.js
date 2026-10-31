@@ -17,6 +17,10 @@ const backendBaseUrl = (
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+/*
+ * 기능 : API 요청 본문 수신
+ * 설명 : JSON과 multipart 본문을 원시 바이트로 받아 프록시 전달 중 사진 파일이 변형되지 않게 합니다.
+ */
 app.use(
     '/server-api',
     express.raw({
@@ -25,6 +29,10 @@ app.use(
     }),
 );
 
+/*
+ * 기능 : 백엔드 API 프록시
+ * 설명 : 요청 메서드·본문·인증 쿠키를 백엔드로 전달하고 응답 상태·본문·쿠키를 프론트 주소에서 반환합니다.
+ */
 app.use('/server-api', async (req, res) => {
     const targetPath = req.originalUrl.replace(/^\/server-api/, '');
     const targetUrl = `${backendBaseUrl}${targetPath}`;
@@ -74,6 +82,10 @@ app.use('/server-api', async (req, res) => {
 
 app.use(express.static(__dirname));
 
+/*
+ * 기능 : 브라우저 실행 환경 설정 제공
+ * 설명 : 환경변수의 API 주소를 JavaScript 설정으로 전달하고 캐시를 막아 변경 사항을 바로 반영합니다.
+ */
 app.get('/config.js', (req, res) => {
     const apiBaseUrl = process.env.API_BASE_URL || '/server-api';
     res.set('Cache-Control', 'no-store');
@@ -84,12 +96,28 @@ app.get('/config.js', (req, res) => {
     );
 });
 
+/*
+ * 기능 : 첫 화면 경로 연결
+ * 설명 : 루트 주소로 들어오면 마인크래프트 이미지가 있는 홈 화면으로 이동합니다.
+ */
 app.get('/', (req, res) => {
     res.redirect('/html/index.html');
 });
 
+/*
+ * 기능 : 게시글 상세 화면 경로 연결
+ * 설명 : 게시글 ID가 포함된 주소에 공통 상세 HTML을 제공하고 실제 내용은 브라우저에서 조회합니다.
+ */
 app.get('/post/:postId', (req, res) => {
     res.sendFile(`${__dirname}/html/board.html`);
+});
+
+/*
+ * 기능 : 예전 커뮤니티 주소 호환
+ * 설명 : 개별 작품 게시판 대신 마인크래프트 첫 화면으로 이동합니다.
+ */
+app.get('/community/:communityId', (req, res) => {
+    res.redirect('/');
 });
 
 app.listen(port, () => {

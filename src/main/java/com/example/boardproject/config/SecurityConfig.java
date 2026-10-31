@@ -24,6 +24,10 @@ public class SecurityConfig {
 
 
     @Bean
+    /*
+     * 기능 : 공개 읽기와 로그인 필수 작업의 접근 정책
+     * 설명 : 가입·로그인과 공개 GET은 허용하고 나머지 요청은 인증을 요구합니다. 세션 없이 JWT 필터로 글 작성 등의 접근을 검사합니다.
+     */
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -31,8 +35,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/auth/signup", "/auth/login", "/auth/logout", "/token/refresh").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/health", "/posts/**", "/users/email/check", "/users/nickname/check").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/signup", "/auth/login", "/auth/logout", "/token/refresh", "/users/upload/profile-image").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/site/board", "/health", "/posts/**", "/images/**", "/communities", "/communities/**", "/users/email/check", "/users/nickname/check").permitAll()
                         .anyRequest().authenticated()
                 )
                 //  JWT 필터를 Security 체인에 등록
@@ -42,6 +46,10 @@ public class SecurityConfig {
     }
 
     @Bean
+    /*
+     * 기능 : 프론트와 백엔드 사이 CORS 설정
+     * 설명 : 허용된 프론트 주소의 메서드·헤더와 인증 쿠키 전송을 허용합니다.
+     */
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:8080");  // 프론트 주소

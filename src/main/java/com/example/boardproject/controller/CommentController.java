@@ -19,6 +19,10 @@ public class CommentController {
     //@AuthenticationPrincipal를 사용해서 로그인한 유저만 작성 가능.
     //특정 게시글 -댓글 추가되는 방식이라 URL 이렇게 작성함.
     @PostMapping("/posts/{postId}/comments")
+    /*
+     * 기능 : 로그인 사용자의 댓글 작성 API
+     * 설명 : 본문과 게시글 ID, 인증된 사용자 정보를 댓글 생성 서비스에 전달합니다.
+     */
     public ResponseEntity<Result> createComment(@PathVariable final Long postId, @RequestBody final CommentRequestDto dto, @AuthenticationPrincipal final PrincipalDetails user) {
 
         String response = commentService.createComment(dto, postId, user);
@@ -30,6 +34,10 @@ public class CommentController {
     //2.댓글 삭제
     //로그인된 사용자가 맞으면 ->
     @DeleteMapping("/posts/{postId}/comments/{commentsId}")
+    /*
+     * 기능 : 댓글 삭제 API
+     * 설명 : 게시글·댓글 ID와 인증된 사용자 ID를 삭제 서비스에 전달합니다.
+     */
     public ResponseEntity<Result> deleteComment(@PathVariable final Long postId,
                                                 @PathVariable final Integer commentsId,
                                                 @AuthenticationPrincipal final PrincipalDetails user) {
@@ -42,6 +50,10 @@ public class CommentController {
     //3. 댓글 수정
     //댓글 내용 수정되고 날짜 update
     @PatchMapping("/posts/{postId}/comments/{commentsId}")
+    /*
+     * 기능 : 댓글 수정 API
+     * 설명 : 수정 내용과 게시글·댓글 ID, 인증 사용자 ID를 수정 서비스에 전달합니다.
+     */
     public String patchComment(@RequestBody final CommentRequestDto dto,
                                               @PathVariable final Long postId,
                                               @PathVariable final Integer commentsId,

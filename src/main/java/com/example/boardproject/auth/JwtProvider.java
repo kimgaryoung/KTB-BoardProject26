@@ -30,6 +30,10 @@ public class JwtProvider {
 
     //1. DI후 자동으로 .  @PostConstruct가 붙은 init()실행.
     @PostConstruct
+    /*
+     * 기능 : JWT 서명 키 초기화
+     * 설명 : 설정된 secret의 UTF-8 바이트로 HMAC 서명·검증에 사용할 키를 준비합니다.
+     */
     public void init() {
         //설정 파일에 있던 secret값을 가져온걸로 getBytes()로 배열로 바꾸고
         //hmacShaKeyFor()로 서명(비밀키)를 반환해줌.
@@ -40,6 +44,10 @@ public class JwtProvider {
 
 
     //2. refresh token과 access token 둘다 생성하는 함수
+    /*
+     * 기능 : JWT 공통 생성
+     * 설명 : 사용자 ID·토큰 종류·발급 및 만료 시각을 담고 HS256으로 서명합니다.
+     */
     private String createToken(
 
            //tpye: refresh인지 access인지
@@ -71,6 +79,10 @@ public class JwtProvider {
 
 
     //3. AccessToken 발급하기
+    /*
+     * 기능 : 접근 인증용 토큰 발급
+     * 설명 : 사용자 ID와 설정된 accessToken 유효 기간으로 접근 토큰을 만듭니다.
+     */
     public String createAccessToken(Long user_id) {
         return createToken(
                 "access",
@@ -90,6 +102,10 @@ public class JwtProvider {
 
 
     //4.RefreshToken 발급하기
+    /*
+     * 기능 : 재발급용 토큰 발급
+     * 설명 : 사용자 ID와 설정된 refreshToken 유효 기간으로 갱신 토큰을 만듭니다.
+     */
     public String createRefreshToken(Long user_id) {
         return createToken(
                 "refresh",
@@ -101,6 +117,10 @@ public class JwtProvider {
 
 
     //5.서명이랑 페이로드 검사 - 실패하면 인증 실패.
+    /*
+     * 기능 : JWT 서명과 만료 검증
+     * 설명 : 서명된 토큰을 파싱하며 변조되었거나 만료되면 예외로 인증 실패를 알립니다.
+     */
     public Jws<Claims> parse(String token) {
         return Jwts.parser()
                 // 검증할 비밍키 등록.
@@ -111,16 +131,28 @@ public class JwtProvider {
     }
 
     //6.AccessToken인지 아닌지 확인
+    /*
+     * 기능 : 접근 토큰 종류 확인
+     * 설명 : 검증한 토큰의 typ 값이 access인지 확인해 갱신 토큰을 접근 인증에 사용할 수 없게 합니다.
+     */
     public boolean isAccessToken(String token) {
         return "access".equals(parse(token).getPayload().get("typ", String.class));
     }
 
     //7.서버에서 전송된 user_id를 꺼내는 메서드 - 현재 로그인한 사용자 찾으려고 사용함.
+    /*
+     * 기능 : 토큰의 사용자 ID 추출
+     * 설명 : 검증한 토큰의 subject를 계정 ID로 변환합니다.
+     */
     public Long getUserId(String token) {
         return Long.valueOf(parse(token).getPayload().getSubject());
     }
 
     //.초 -> 밀리초 로 바꾸는 함수 (쿠키 만료시간 정할때 ms 씀)
+    /*
+     * 기능 : 접근 토큰 유효 기간 단위 변환
+     * 설명 : 설정의 초 단위 유효 기간을 응답에 사용할 밀리초로 바꿉니다.
+     */
     public Long getAccessTokenValidityInMilliseconds() {
         return jwtProperties.getAccessTokenExpSeconds() * 1000;
     }

@@ -11,4 +11,5 @@ import lombok.Setter;
 public class PostCreateRequestDto {
     private String title;
     private String content;
+    private Long communityId;
 }

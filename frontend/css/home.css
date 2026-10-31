@@ -1,0 +1,49 @@
+@import url('./common/layout.css');
+@import url('../component/header/header.css');
+
+/*
+ * 기능 : 마인크래프트 사진 중심의 전체 화면 홈
+ * 설명 : 기존 마크 이미지를 배경 사진으로 크게 표시하고 어두운 그라데이션으로 제목과 버튼의 대비를 확보합니다. 모든 모서리는 각지게 유지합니다.
+ */
+body.homePage { width: 100%; min-height: 100svh; margin: 0; border: 0; align-items: stretch; justify-content: flex-start; background: #10241a; }
+.homePage header { position: absolute; padding: 22px clamp(20px, 5vw, 80px); grid-template-columns: 64px 1fr 64px; background: rgba(10, 29, 20, .74); border-bottom: 1px solid rgba(255,255,255,.18); }
+.homePage header h1 { color: #fff; font-size: clamp(20px, 3vw, 26px); font-weight: 700; letter-spacing: -.04em; }
+.homePage .accountLink { grid-area: rbtn; color: #fff; font-size: 14px; text-align: right; white-space: nowrap; }
+.homeLanding { width: 100%; min-height: 100svh; position: relative; isolation: isolate; color: #fff; }
+.homeScene { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; z-index: -2; }
+.homeLanding::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg,rgba(5,22,13,.87),rgba(5,22,13,.3) 70%),linear-gradient(0deg,rgba(5,22,13,.95),transparent 72%); }
+.homeContent { width: min(100%, 1600px); min-height: 100svh; margin: 0 auto; padding: 168px clamp(24px, 6vw, 96px) 24px; display: flex; flex-direction: column; gap: 56px; }
+.homeIntro { flex: 1; padding: 24px 0 12px; }
+.homeEyebrow { display: flex; align-items: center; gap: 12px; color: #caf398; font-size: 12px; font-weight: 700; letter-spacing: .16em; }
+.homeEyebrow span { width: 10px; height: 10px; background: #a4d967; box-shadow: 4px -4px 0 rgba(164,217,103,.3); }
+.homeIntro h1 { font-size: clamp(44px, 5.5vw, 80px); line-height: 1.16; letter-spacing: -.055em; margin: 26px 0; font-weight: 800; }
+.homeDescription { font-size: clamp(15px, 1.4vw, 18px); line-height: 1.9; color: #e0e9df; }
+.homeActions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 36px; }
+.homeActions a { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 14px 24px; font-size: 15px; font-weight: 700; }
+.homePrimary { color: #142713; background: #b6ec7c; border: 1px solid #cfff9b; box-shadow: 5px 5px 0 #30532b; gap: 32px; }
+.homePrimary:hover { background: #caff96; }
+.homeSecondary { color: #fff; border: 1px solid rgba(255,255,255,.55); background: rgba(5,22,13,.25); }
+.homeSecondary:hover { background: rgba(255,255,255,.12); }
+.homeActions a:focus-visible, .homePage .accountLink:focus-visible { outline: 3px solid #b6ec7c; outline-offset: 6px; }
+
+/*
+ * 기능 : 홈 소개 카드와 반응형 배치
+ * 설명 : 건축·탐험·교류 이야기를 세 칸으로 소개하며 작은 화면에서는 한 열로 배치해 가로 스크롤을 방지합니다.
+ */
+.homeTopics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid rgba(255,255,255,.3); border-bottom: 1px solid rgba(255,255,255,.2); background: rgba(11,31,20,.52); }
+.homeTopics article { padding: 26px 28px; }
+.homeTopics article + article { border-left: 1px solid rgba(255,255,255,.2); }
+.homeTopicNumber { color: #b6d69c; font-size: 11px; letter-spacing: .12em; }
+.homeTopics h2 { margin: 12px 0 10px; font-size: 21px; letter-spacing: -.03em; }
+.homeTopics p { color: #ced9cf; font-size: 14px; line-height: 1.8; word-break: keep-all; overflow-wrap: anywhere; }
+.homeFooter { display: flex; justify-content: space-between; gap: 16px; color: #a8bcaa; font-size: 11px; letter-spacing: .03em; }
+@media (max-width: 600px) {
+    .homeContent { padding-top: 128px; gap: 40px; }
+    .homeIntro { padding-top: 8px; }
+    .homeActions { gap: 16px; }
+    .homeActions a { padding: 12px 18px; }
+    .homeTopics { grid-template-columns: 1fr; }
+    .homeTopics article { padding: 22px 20px; }
+    .homeTopics article + article { border-left: 0; border-top: 1px solid rgba(255,255,255,.2); }
+    .homeFooter { flex-direction: column; gap: 8px; }
+}

@@ -1,0 +1,83 @@
+async page => {
+    const base = 'http://localhost:8080';
+    const password = 'ProfilePhoto1!';
+    const stamp = Date.now().toString();
+    const email = `profile${stamp}@example.test`;
+    const nickname = `사진${stamp.slice(-7)}`;
+    const assert = (ok, message) => { if (!ok) throw new Error(message); };
+    const errors = [];
+    const onError = error => errors.push(error.message);
+    let registered = false;
+    let loggedIn = false;
+    let postId = null;
+    await page.context().clearCookies();
+    page.on('pageerror', onError);
+    try {
+        await page.goto(`${base}/html/signup.html`);
+        await page.locator('header').waitFor();
+        await page.locator('#email').fill(email);
+        await page.locator('#pw').fill(password);
+        await page.locator('#pwck').fill(password);
+        await page.locator('#nickname').fill(nickname);
+        await page.locator('#profile').setInputFiles('/Users/garyeong/IdeaProjects/KTB-BoardProject26/frontend/public/background/minecraft-landscape.png');
+        await page.getByText('회원가입 시 이 사진으로 저장됩니다.', {exact:true}).waitFor();
+        await page.waitForFunction(() => document.querySelector('#signupProfilePreview').naturalWidth > 0 && !document.querySelector('#signupBtn').disabled);
+        const firstUrl = await page.locator('#signupProfilePreview').getAttribute('src');
+        await page.getByRole('button', {name:'회원 가입',exact:true}).click();
+        await page.waitForURL('**/html/login.html');
+        registered = true;
+        const login = await page.request.post(`${base}/server-api/v1/auth/login`,{data:{email,password}});
+        assert(login.ok(),'new test account login');
+        loggedIn = true;
+        await page.goto(base);
+        await page.waitForFunction(() => document.querySelector('header img.profile')?.naturalWidth > 0);
+        assert(await page.locator('header img.profile').getAttribute('src') === firstUrl,'signup photo in header');
+        await page.locator('header img.profile').click();
+        await page.getByRole('link',{name:'회원정보수정',exact:true}).click();
+        await page.waitForURL('**/html/modifyInfo.html');
+        await page.waitForFunction(() => document.querySelector('#profilePreview').naturalWidth > 0);
+        assert(await page.locator('#profilePreview').getAttribute('src') === firstUrl,'saved photo in profile editor');
+        assert(await page.locator('#profile').evaluate(e=>e.files.length) === 0,'existing image must not be represented as a fake upload');
+        await page.locator('#profile').setInputFiles({name:'bad.png',mimeType:'image/png',buffer:Buffer.from('<svg onload="alert(1)"/>')});
+        await page.getByText('PNG, JPG, GIF, WebP, BMP 사진을 선택해주세요.',{exact:true}).waitFor();
+        assert(await page.locator('#profilePreview').getAttribute('src') === firstUrl,'failed upload retains saved preview');
+        await page.locator('#profile').setInputFiles('/Users/garyeong/IdeaProjects/KTB-BoardProject26/frontend/public/background/img_2.png');
+        await page.getByText('사진이 준비됐어요. 수정하기를 눌러 저장해주세요.',{exact:true}).waitFor();
+        await page.waitForFunction(() => !document.querySelector('#signupBtn').disabled && document.querySelector('#profilePreview').naturalWidth > 0);
+        const secondUrl = await page.locator('#profilePreview').getAttribute('src');
+        assert(firstUrl !== secondUrl,'replacement gets new URL');
+        await page.getByRole('button',{name:'수정하기',exact:true}).click();
+        await page.waitForFunction(url => document.querySelector('#profilePreview')?.getAttribute('src')===url && document.querySelector('#signupBtn')?.disabled,secondUrl);
+        await page.reload();
+        await page.waitForFunction(url => document.querySelector('#profilePreview')?.getAttribute('src')===url && document.querySelector('#profilePreview').naturalWidth>0,secondUrl);
+        await page.goto(`${base}/html/board-write.html`);
+        await page.waitForFunction(() => !document.querySelector('#title').disabled);
+        await page.locator('#title').fill('프로필 사진 표시 확인');
+        await page.locator('#content').fill('임시 프로필 사진 표시 검증 글입니다.');
+        await page.getByRole('button',{name:'완료',exact:true}).click();
+        await page.waitForURL('**/post/*');
+        postId=page.url().split('/').pop();
+        await page.goto(`${base}/html/posts.html`);
+        await page.getByRole('heading',{name:'프로필 사진 표시 확인',exact:true}).waitFor();
+        const card=page.locator('a').filter({has:page.getByRole('heading',{name:'프로필 사진 표시 확인',exact:true})}).first();
+        const author=card.getByAltText('작성자 프로필');
+        assert(await author.getAttribute('src')===secondUrl,'author card reflects changed profile');
+        await page.goto(`${base}/html/modifyInfo.html`);
+        await page.locator('#removeProfileButton').click();
+        await page.getByRole('button',{name:'수정하기',exact:true}).click();
+        await page.waitForFunction(() => document.querySelector('#signupBtn')?.disabled && document.querySelector('#profilePreview')?.src.endsWith('/default.jpg'));
+        const session=await page.request.get(`${base}/server-api/v1/auth/check`);
+        assert((await session.json()).data.profileImageUrl===null,'photo removal persisted');
+        assert(errors.length===0,`page errors: ${errors.join(', ')}`);
+        return {passed:['signup upload and preview','header photo','profile menu navigation','invalid image preserves existing photo','replacement saved and retained on reload','author avatar updated','remove photo']};
+    } finally {
+        if(registered) {
+            if(!loggedIn) await page.request.post(`${base}/server-api/v1/auth/login`,{data:{email,password}});
+            if(postId) assert((await page.request.delete(`${base}/server-api/v1/posts/${postId}`)).ok(),'temporary post cleanup');
+            assert((await page.request.delete(`${base}/server-api/v1/users/me`)).ok(),'temporary account cleanup');
+        }
+        await page.request.post(`${base}/server-api/v1/auth/logout`);
+        page.off('pageerror',onError);
+        await page.goto(base);
+    }
+}

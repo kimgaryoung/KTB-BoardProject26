@@ -9,7 +9,7 @@
             href="../css/login.css"
             crossorigin="anonymous"
     />
-    <title>회원가입</title>
+    <title>회원가입 | 마크안에 사람이 살잖아</title>
 </head>
 <body>
 <section class="wrap">
@@ -57,6 +57,7 @@
         </div>
         <div class="inputBox">
             <label for="profile">프로필 사진</label>
+            <img id="signupProfilePreview" class="signupProfilePreview" src="/public/image/profile/default.jpg" alt="프로필 사진 미리보기" />
             <input
                     type="file"
                     name="profile"
@@ -64,6 +65,8 @@
                     placeholder="프로필 사진을 업로드 해주세요"
                     accept="image/*"
             />
+            <button type="button" id="removeSignupProfile" hidden>사진 제거</button>
+            <p id="profileStatus" class="profileStatus" role="status" aria-live="polite">선택 사항 · 최대 5MB</p>
         </div>
         <div class="buttons">
             <button id="signupBtn">회원 가입</button>

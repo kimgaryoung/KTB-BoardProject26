@@ -1,5 +1,16 @@
 @import url('../../component/dialog/dialog.css');
 
+/*
+ * 기능 : 전체 UI의 각진 모서리 통일
+ * 설명 : 카드·버튼·입력창·프로필·팝업과 가상 요소, 파일 선택 버튼을 반경 0으로 표시합니다.
+ */
+*,
+*::before,
+*::after,
+input::file-selector-button {
+    border-radius: 0;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -14,8 +25,10 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    margin: 0 calc(50vw - 212.5px);
-    border-radius: 4px;
+    width: min(100%, 426px);
+    margin: 0 auto;
+    isolation: isolate;
+    border-radius: 0;
     border: 1px solid rgba(0, 0, 0, 0.3);
     background-color: #fff;
 }
@@ -33,15 +46,21 @@ body {
     background-color: #f4f5f7;
 }
 
+/*
+ * 기능 : 모든 화면의 마인크래프트 공통 배경
+ * 설명 : 로그인 여부와 커뮤니티 종류에 관계없이 같은 풍경을 표시합니다. 화면 전체를 덮되 원본 이미지 비율은 유지합니다.
+ */
 .background {
     position: fixed;
-    width: 100vw;
-    height: 100vh;
-    top: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     z-index: -1;
-    background: url('/public/background/bg.png');
+    background: url('/public/background/minecraft-landscape.png');
     background-repeat: no-repeat;
-    background-size: 100vw 100vh;
+    background-size: cover;
+    background-position: center;
+    pointer-events: none;
 }
 
 .background::before {
@@ -51,7 +70,11 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5); /* 어두운 오버레이 색상과 투명도 설정 */
+    background: rgba(15, 35, 24, 0.25); /* 배경 대비를 낮춰 입력 폼의 가독성 유지 */
     /* rgba의 마지막 값(0.5)은 투명도를 의미하며, 0에서 1 사이의 값을 가질 수 있습니다.
        0에 가까울수록 투명해지고, 1에 가까울수록 불투명해집니다. */
+}
+
+.isAuthenticated .wrap {
+    background-color: rgba(244, 245, 247, 0.94);
 }

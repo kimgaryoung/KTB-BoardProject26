@@ -52,7 +52,7 @@
     height: 32px;
     padding: 0 12px;
     border: 1px solid #aca0eb;
-    border-radius: 8px;
+    border-radius: 0;
     background-color: #ffffff;
     color: #454854;
     cursor: pointer;
@@ -82,7 +82,7 @@
 .head .mod button {
     padding: 2px 12px;
 
-    border-radius: 8px;
+    border-radius: 0;
     border: 1px solid #aca0eb;
     background-color: transparent;
 
@@ -98,7 +98,7 @@
 .head .writerWrap .profileImg img {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: 0;
     object-fit: cover;
 }
 .head .writerWrap .nickname {
@@ -136,10 +136,15 @@
     text-align: left;
     width: 100%;
     word-wrap: break-word;
+    white-space: pre-wrap;
 }
+.body .contentImg { width: 100%; }
 .body .contentImg img {
     max-width: 100%;
-    max-height: 306px;
+    max-height: 640px;
+    display: block;
+    margin: 0 auto;
+    border-radius: 0;
 
     object-fit: contain;
 
@@ -194,7 +199,7 @@
 
     width: 116px;
     height: 77px;
-    border-radius: 16px;
+    border-radius: 0;
     background-color: #d9d9d9;
 }
 .commentWrap h3 {
@@ -233,7 +238,7 @@
     flex-direction: column;
 
     height: 180px;
-    border-radius: 16px;
+    border-radius: 0;
 
     overflow: hidden;
 }
@@ -269,7 +274,7 @@
 
     background-color: #aca0eb;
     border: none;
-    border-radius: 16px;
+    border-radius: 0;
 }
 
 .commentList {

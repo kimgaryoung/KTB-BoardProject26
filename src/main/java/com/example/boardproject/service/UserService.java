@@ -31,6 +31,10 @@ public class UserService {
 
     // 회원가입
     @Transactional
+    /*
+     * 기능 : 계정과 프로필 생성
+     * 설명 : 이메일 중복을 확인하고 계정과 닉네임·프로필 사진 정보를 함께 저장합니다.
+     */
     public void signup(UserSignRequestDto signupRequest) {
 
         // 1. User 저장
@@ -56,6 +60,10 @@ public class UserService {
 
     // 로그인
     @Transactional
+    /*
+     * 기능 : 계정 확인과 로그인 토큰 발급
+     * 설명 : 이메일·비밀번호를 확인한 뒤 accessToken과 refreshToken을 발급하고 갱신 토큰 및 로그인 시각을 저장합니다.
+     */
     public UserLoginResult login(UserLoginRequestDto loginRequest) {
         // 1. 이메일로 유저 찾기
         User user = userRepository.findByEmail(loginRequest.getEmail())
@@ -93,6 +101,10 @@ public class UserService {
 
     // 액세스 토큰 재발급
     @Transactional
+    /*
+     * 기능 : 로그인 토큰 재발급
+     * 설명 : 저장된 refreshToken과 만료 여부를 확인하고 accessToken 및 새 refreshToken을 발급해 갱신 토큰을 교체합니다.
+     */
     public TokenResult refreshAccessToken(String refreshToken) {
         // 1. refreshToken으로 유저 찾기
         User user = userRepository.findByRefreshToken(refreshToken)
@@ -135,6 +147,10 @@ public class UserService {
 
     //유저 정보 수정
     @Transactional
+    /*
+     * 기능 : 회원 프로필 수정
+     * 설명 : 사용자 ID에 연결된 닉네임과 프로필 사진 주소를 갱신합니다.
+     */
     public String updateProfile(final Long userId, final UserProfileRequestDto dto) throws Exception {
         UserProfile userProfile = findByUserId(userId);
 
@@ -154,6 +170,10 @@ public class UserService {
 
     //유저 비밀번호 변경
     @Transactional
+    /*
+     * 기능 : 회원 비밀번호 수정
+     * 설명 : 사용자 계정의 비밀번호 값을 변경합니다.
+     */
     public String updatePassword(final Long userId, final UserProfileRequestDto dto) throws Exception {
         User user = findByUserid(userId);
 
@@ -173,6 +193,10 @@ public class UserService {
 
     //회원 탈퇴.
     @Transactional
+    /*
+     * 기능 : 회원 계정 삭제
+     * 설명 : 사용자 ID로 계정을 조회해 삭제합니다.
+     */
     public String deleteUser(final Long userId) throws Exception {
         User user = findByUserid(userId);
         userRepository.delete(user);
@@ -181,16 +205,28 @@ public class UserService {
     }
 
     // 이메일 사용 가능 여부 (true = 사용 가능)
+    /*
+     * 기능 : 이메일 사용 가능 여부 확인
+     * 설명 : 같은 이메일의 계정이 없으면 true를 반환합니다.
+     */
     public boolean isEmailAvailable(String email) {
         return !userRepository.existsByEmail(email);
     }
 
     // 닉네임 사용 가능 여부 (true = 사용 가능)
+    /*
+     * 기능 : 닉네임 사용 가능 여부 확인
+     * 설명 : 같은 닉네임의 프로필이 없으면 true를 반환합니다.
+     */
     public boolean isNicknameAvailable(String nickname) {
         return !userProfileRepository.existsByNickname(nickname);
     }
 
     // 현재 로그인 유저 정보 조회
+    /*
+     * 기능 : 현재 로그인 사용자 정보 구성
+     * 설명 : 계정과 프로필 정보를 결합해 화면의 인증 확인과 헤더 표시에 필요한 값을 반환합니다.
+     */
     public AuthCheckResponseDto getAuthCheck(Long userId) {
         UserProfile userProfile = userProfileRepository.findByUserId(userId);
         User user = userRepository.findByUserId(userId);

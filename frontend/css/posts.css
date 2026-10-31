@@ -1,0 +1,41 @@
+@import url('../component/board/boardItem.css');
+
+/*
+ * 기능 : 마인크래프트 게시글 목록 화면
+ * 설명 : 전체 창 너비와 공통 풍경을 사용하고 소개·게시글을 밝은 패널에 배치합니다.
+ */
+body.postsPage { width: 100%; max-width: none; min-height: 100svh; margin: 0; border: 0; border-radius: 0; align-items: stretch; justify-content: flex-start; }
+.postsPage header { padding: 24px clamp(16px, 4vw, 64px); grid-template-columns: 64px 1fr 64px; }
+.postsPage header h1 { font-size: clamp(20px, 3vw, 28px); }
+.postsPage .accountLink { grid-area: rbtn; color: #326740; }
+.postsPage .minecraftShell { min-height: 100svh; padding: 132px clamp(16px, 4vw, 64px) 32px; align-items: stretch; gap: 24px; background: transparent; }
+.minecraftHero, .minecraftBoard { width: 100%; min-width: 0; padding: clamp(20px, 2.5vw, 32px); border: 1px solid rgba(255, 255, 255, .65); border-radius: 0; background: rgba(255, 255, 255, .95); }
+.minecraftEyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: #43774d; margin-bottom: 12px; }
+.minecraftHero h1 { font-size: clamp(28px, 3vw, 44px); line-height: 1.35; color: #203b28; overflow-wrap: anywhere; }
+.minecraftHero > p:last-child { color: #607064; line-height: 1.8; margin-top: 16px; }
+.minecraftBoard { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+.postsPage .writePostLink, .postsPage .postSearchForm button { background: #3e784c; color: white; font: inherit; font-size: 14px; }
+.postsPage .writePostLink[hidden] { display: none; }
+.postsPage #loadMorePosts { align-self: center; }
+.postsPage .postSearchForm input:focus { outline: 2px solid #579762; outline-offset: 2px; }
+
+/*
+ * 기능 : 게시글 카드의 반응형 목록
+ * 설명 : 큰 화면은 여러 열, 모바일은 한 열로 표시하고 사진·통계가 좁은 화면 밖으로 넘치지 않게 합니다.
+ */
+.postsPage .boardList { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+.postsPage .boardList > a { min-width: 0; }
+.postsPage .boardItem { background: white; height: 100%; }
+.postsPage .boardItem .info { flex-wrap: wrap; gap: 12px; padding-right: 20px; }
+.postsPage .boardItem .date { margin-left: 0; padding: 0; }
+.postsPage .boardItem .postCardMain .title { font-size: 22px; }
+.postsPage .boardItem .likeButton.is-active, .postsPage .boardItem .likeButton.is-active b { color: #397448; }
+@media (max-width: 480px) {
+    .postsPage .minecraftShell { padding-top: 116px; gap: 16px; }
+    .minecraftHero, .minecraftBoard { padding: 16px; }
+    .postsPage .postListHeading { align-items: flex-start; flex-wrap: wrap; }
+    .postsPage .postListHeading h2 { font-size: 19px; }
+    .postsPage .boardItem .postCardMain .title { font-size: 18px; }
+}
+
+.postsPage .minecraftHero h1 { font-size: clamp(26px, 3vw, 36px); }

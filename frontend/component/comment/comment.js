@@ -5,7 +5,15 @@ import { deleteComment, updateComment } from '../../api/commentRequest.js';
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const HTTP_OK = 200;
 
+/*
+ * 기능 : 댓글 내용과 작성자별 편집 버튼 생성
+ * 설명 : 작성자 정보와 댓글을 표시하고 현재 사용자와 댓글 작성자가 같을 때 수정·삭제 버튼을 붙입니다.
+ */
 const CommentItem = (data, writerId, postId, commentId) => {
+    /*
+     * 기능 : 댓글 삭제 확인과 요청
+     * 설명 : 확인 창에서 승인하면 댓글 삭제 API를 호출하고 해당 게시글로 이동합니다.
+     */
     const CommentDelete = () => {
         Dialog(
             '댓글을 삭제하시겠습니까?',
@@ -23,6 +31,10 @@ const CommentItem = (data, writerId, postId, commentId) => {
         );
     };
 
+    /*
+     * 기능 : 댓글 인라인 편집
+     * 설명 : 본문을 입력창으로 바꿔 저장·취소를 처리하고 수정 성공 시 게시글 화면을 다시 엽니다.
+     */
     const CommentModify = () => {
         // 댓글 내용을 보여주는 p 태그 찾기
         const p = commentInfoWrap.querySelector('p');
