@@ -1,0 +1,66 @@
+name: CI-CD completed-run measurements
+# 기능 : 완료된 실행의 실제 시간 수집
+# 설명 : 병렬 job 시간을 더해 배포 시간으로 오인하지 않고, 완료 이벤트의 전체 경과 시간과 job·step 시간을 함께 저장합니다.
+on:
+  workflow_run:
+    workflows: ['CI-CD Baseline (single serial)', 'CI-CD Optimized (multi parallel)']
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          pattern: build-*
+          path: releases
+      - name: Record wall clock, queue, jobs and steps
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const run = context.payload.workflow_run;
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRunAttempt, {
+              ...context.repo, run_id: run.id, attempt_number: run.run_attempt, per_page: 100
+            });
+            const seconds = (start, end) => start && end ? Math.max(0, (Date.parse(end)-Date.parse(start))/1000) : null;
+            const releases = [];
+            if (fs.existsSync('releases')) {
+              for (const dir of fs.readdirSync('releases')) {
+                const file = path.join('releases',dir,'release.json');
+                if (fs.existsSync(file)) releases.push(JSON.parse(fs.readFileSync(file,'utf8')));
+              }
+            }
+            const metrics = {
+              run_id:run.id, attempt:run.run_attempt, workflow:run.name, url:run.html_url,
+              workflow_sha:run.head_sha, conclusion:run.conclusion,
+              created_at:run.created_at, started_at:run.run_started_at, completed_at:run.updated_at,
+              wall_seconds:seconds(run.created_at,run.updated_at),
+              active_seconds:seconds(run.run_started_at,run.updated_at),
+              initial_queue_seconds:seconds(run.created_at,run.run_started_at),
+              releases,
+              jobs:jobs.map(j=>({name:j.name,conclusion:j.conclusion,started_at:j.started_at,completed_at:j.completed_at,
+                duration_seconds:seconds(j.started_at,j.completed_at),
+                steps:(j.steps||[]).map(s=>({name:s.name,conclusion:s.conclusion,duration_seconds:seconds(s.started_at,s.completed_at)}))}))
+            };
+            const quote = value => '"'+String(value??'').replaceAll('"','""')+'"';
+            const columns=['run_id','attempt','workflow','conclusion','workflow_sha','wall_seconds','active_seconds','initial_queue_seconds'];
+            fs.mkdirSync('measurements',{recursive:true});
+            fs.writeFileSync('measurements/metrics.json',JSON.stringify(metrics,null,2));
+            fs.writeFileSync('measurements/metrics.csv',columns.join(',')+'\n'+columns.map(k=>quote(metrics[k])).join(',')+'\n');
+            await core.summary.addHeading('Measured CI/CD timing').addLink('Source run',run.html_url)
+              .addTable([['Outcome','Wall seconds','Active seconds','Initial queue seconds'],
+                [String(run.conclusion),String(metrics.wall_seconds),String(metrics.active_seconds),String(metrics.initial_queue_seconds)]])
+              .addRaw('\nWall time includes scheduling, environment approval and all selected jobs. Per-job durations are not added as elapsed time. Failed/cancelled runs are retained, not treated as speed improvements.\n')
+              .write();
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cicd-metrics-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+          path: measurements/
+          retention-days: 90

@@ -1,0 +1,67 @@
+name: Reusable EC2 deployment
+on:
+  workflow_call:
+    inputs:
+      component: {type: string, required: true}
+      environment: {type: string, required: true}
+    secrets:
+      EC2_SSH_KEY: {required: true}
+      EC2_KNOWN_HOSTS: {required: true}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  deploy:
+    runs-on: ${{ fromJSON(vars.CICD_RUNNER_LABELS || '["self-hosted","Linux","X64"]') }}
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 10
+    env:
+      COMPONENT: ${{ inputs.component }}
+      AWS_REGION: ${{ vars.AWS_REGION || 'ap-northeast-2' }}
+      BACKEND_HOST: ${{ vars.BACKEND_HOST }}
+      FRONTEND_HOST: ${{ vars.FRONTEND_HOST }}
+      INTRO_HOST: ${{ vars.INTRO_HOST }}
+      DEPLOY_PORT: ${{ inputs.component == 'backend' && '3000' || inputs.component == 'frontend' && '8080' || '8081' }}
+      DEPLOY_USER: ${{ vars.EC2_SSH_USER || 'ubuntu' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ inputs.component }}
+          path: release
+      - name: Deploy immutable digest and verify HTTP
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "DEPLOY_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+          case "$COMPONENT" in
+            backend) export DEPLOY_HOST="$BACKEND_HOST" ;;
+            frontend) export DEPLOY_HOST="$FRONTEND_HOST" ;;
+            intro) export DEPLOY_HOST="$INTRO_HOST" ;;
+            *) exit 2 ;;
+          esac
+          registry="$(python3 -c 'import json; print(json.load(open("release/release.json"))["image_ref"].split("/")[0])')"
+          export ECR_REGISTRY="$registry"
+          bash scripts/ci/deploy.sh
+      - name: Record deployment result
+        if: ${{ always() }}
+        env:
+          RESULT: ${{ job.status }}
+        run: |
+          python3 - <<'PY'
+          import json,os,time
+          from pathlib import Path
+          data = dict(component=os.environ['COMPONENT'], result=os.environ['RESULT'],
+                      started_at=int(os.environ.get('DEPLOY_STARTED_AT',str(int(time.time())))), finished_at=int(time.time()))
+          data['duration_seconds'] = data['finished_at'] - data['started_at']
+          Path('deployment.json').write_text(json.dumps(data,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: deploy-${{ inputs.component }}
+          path: deployment.json
+          retention-days: 30

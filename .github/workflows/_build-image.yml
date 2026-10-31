@@ -1,0 +1,106 @@
+name: Reusable image build
+on:
+  workflow_call:
+    inputs:
+      component: {type: string, required: true}
+      variant: {type: string, required: true}
+      source_sha: {type: string, required: true}
+      image_selector: {type: string, default: ''}
+      force_build: {type: boolean, default: false}
+      cache: {type: string, default: cold}
+      environment: {type: string, required: true}
+      targets: {type: string, required: true}
+      experiment: {type: string, default: ''}
+      deploy: {type: boolean, default: false}
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  image:
+    runs-on: ${{ fromJSON(vars.CICD_RUNNER_LABELS || '["self-hosted","Linux","X64"]') }}
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 40
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'ap-northeast-2' }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_REGION || 'ap-northeast-2' }}
+      ECR_REPOSITORY: ${{ inputs.component == 'backend' && (vars.ECR_BACKEND_REPOSITORY || 'scarlett-backend') || inputs.component == 'frontend' && (vars.ECR_FRONTEND_REPOSITORY || 'scarlett-frontend') || (vars.ECR_INTRO_REPOSITORY || 'scarlett-intro') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+      - name: Start timing
+        run: echo "STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+      - name: Configure AWS OIDC (optional; otherwise EC2 instance role)
+        if: ${{ vars.AWS_DEPLOY_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Resolve registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          account="$(aws sts get-caller-identity --query Account --output text)"
+          echo "ECR_REGISTRY=$account.dkr.ecr.$AWS_REGION.amazonaws.com" >> "$GITHUB_ENV"
+          echo "DOCKER_CONFIG=$(mktemp -d "$RUNNER_TEMP/ecr-config.XXXXXX")" >> "$GITHUB_ENV"
+      # 기능 : 변경 경로 대신 명시 선택과 콘텐츠 키 사용
+      # 설명 : 개발자가 선택한 서비스를 처리하며 기존 이미지가 있으면 Docker 빌드를 건너뜁니다.
+      - name: Prepare context and image plan
+        id: plan
+        env:
+          COMPONENT: ${{ inputs.component }}
+          VARIANT: ${{ inputs.variant }}
+          SELECTOR: ${{ inputs.image_selector }}
+          FORCE: ${{ inputs.force_build }}
+        run: >-
+          python3 scripts/ci/image_plan.py --component "$COMPONENT" --variant "$VARIANT"
+          --selector "$SELECTOR" --force "$FORCE" --repository "$ECR_REPOSITORY"
+          --output "$RUNNER_TEMP/context-$COMPONENT"
+      - uses: docker/setup-buildx-action@v3
+        if: ${{ steps.plan.outputs.build == 'true' }}
+      - name: Login to ECR
+        if: ${{ steps.plan.outputs.build == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws ecr get-login-password --region "$AWS_REGION" |
+            docker login --username AWS --password-stdin "$ECR_REGISTRY"
+      - name: Build, test and push
+        id: build
+        if: ${{ steps.plan.outputs.build == 'true' }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ runner.temp }}/context-${{ inputs.component }}
+          file: ${{ runner.temp }}/context-${{ inputs.component }}/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.plan.outputs.tag }}
+          no-cache: ${{ inputs.cache == 'cold' }}
+          pull: true
+          cache-from: ${{ inputs.cache == 'warm' && format('type=gha,scope={0}-{1}', inputs.component, inputs.variant) || '' }}
+          cache-to: ${{ inputs.cache == 'warm' && format('type=gha,mode=max,scope={0}-{1}', inputs.component, inputs.variant) || '' }}
+          labels: |
+            org.opencontainers.image.revision=${{ inputs.source_sha }}
+            board.pipeline.variant=${{ inputs.variant }}
+      - name: Record immutable release
+        env:
+          BUILT_DIGEST: ${{ steps.build.outputs.digest }}
+          VARIANT: ${{ inputs.variant }}
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+          TARGETS: ${{ inputs.targets }}
+          CACHE_MODE: ${{ inputs.cache }}
+          EXPERIMENT: ${{ inputs.experiment }}
+          DEPLOY_REQUESTED: ${{ inputs.deploy }}
+        run: python3 scripts/ci/finalize_image.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ inputs.component }}
+          path: release.json
+          retention-days: 30
+      - name: Cleanup credentials
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          if [[ -n "${DOCKER_CONFIG:-}" && "$DOCKER_CONFIG" == "$RUNNER_TEMP"/* ]]; then
+            docker logout "$ECR_REGISTRY"
+          fi

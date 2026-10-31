@@ -1,0 +1,115 @@
+# 기능 : CI/CD 개선 전후 비교 진입점
+# 설명 : 경로 필터 없이 배포 대상을 선택합니다. 같은 검증·배포 모듈의 Dockerfile과 병렬도만 비교합니다.
+name: CI-CD Baseline (single serial)
+run-name: "${{ inputs.experiment || 'manual' }} | single | ${{ inputs.targets }} | ${{ inputs.environment }}"
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub Environment (EC2 hosts/secrets)
+        type: environment
+        default: staging
+      targets:
+        description: Developer-selected deployment targets (no path filter)
+        type: choice
+        options: [all, frontend-backend, frontend, backend, intro]
+        default: frontend-backend
+      source_ref:
+        description: Source branch/tag/SHA (empty = workflow commit; pipeline files must exist)
+        type: string
+        default: ''
+      backend_tag:
+        description: Existing backend ECR tag or sha256 digest (empty = build policy)
+        type: string
+        default: ''
+      frontend_tag:
+        description: Existing frontend ECR tag or sha256 digest
+        type: string
+        default: ''
+      intro_tag:
+        description: Existing intro ECR tag or sha256 digest
+        type: string
+        default: ''
+      force_build:
+        description: Rebuild all selected services; do not combine with explicit tags
+        type: boolean
+        default: false
+      cache:
+        description: Compare equal cold/warm cache policies
+        type: choice
+        options: [cold, warm]
+        default: cold
+      deploy:
+        description: Deploy to EC2 after builds (false = build-only measurement)
+        type: boolean
+        default: false
+      experiment:
+        description: Measurement group, e.g. cold-01 or reuse-01
+        type: string
+        default: ''
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+concurrency:
+  group: board-deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+jobs:
+  plan:
+    runs-on: ${{ fromJSON(vars.CICD_RUNNER_LABELS || '["self-hosted","Linux","X64"]') }}
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      source_sha: ${{ steps.plan.outputs.source_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+      - id: plan
+        env:
+          TARGETS: ${{ inputs.targets }}
+          FORCE: ${{ inputs.force_build }}
+          BACKEND_TAG: ${{ inputs.backend_tag }}
+          FRONTEND_TAG: ${{ inputs.frontend_tag }}
+          INTRO_TAG: ${{ inputs.intro_tag }}
+        run: |
+          python3 - <<'PYCODE'
+          import json,os,subprocess,sys
+          sys.path.insert(0,'scripts/ci')
+          from context import targets
+          selected = targets(os.environ['TARGETS'])
+          if os.environ['FORCE']=='true' and any(os.environ[name.upper()+'_TAG'] for name in selected):
+              raise ValueError('force_build cannot be combined with selected existing image tags')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('matrix='+json.dumps({'component':selected})+'\n')
+              out.write('source_sha='+subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()+'\n')
+          PYCODE
+  build:
+    needs: plan
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    uses: ./.github/workflows/_build-image.yml
+    with:
+      component: ${{ matrix.component }}
+      variant: single
+      source_sha: ${{ needs.plan.outputs.source_sha }}
+      image_selector: ${{ matrix.component == 'backend' && inputs.backend_tag || matrix.component == 'frontend' && inputs.frontend_tag || matrix.component == 'intro' && inputs.intro_tag || '' }}
+      force_build: ${{ inputs.force_build }}
+      cache: ${{ inputs.cache }}
+      environment: ${{ inputs.environment }}
+      targets: ${{ inputs.targets }}
+      experiment: ${{ inputs.experiment }}
+      deploy: ${{ inputs.deploy }}
+  deploy:
+    needs: [plan, build]
+    if: ${{ inputs.deploy }}
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    uses: ./.github/workflows/_deploy-ec2.yml
+    with:
+      component: ${{ matrix.component }}
+      environment: ${{ inputs.environment }}
+    secrets: inherit
