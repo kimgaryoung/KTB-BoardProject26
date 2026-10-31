@@ -1,0 +1,12 @@
+# 기능 : EC2 진입점에서 인트로와 서비스 분리 / 설명 : 실제 EC2 사설 주소로 교체하고 외부 트래픽은 이 프록시로 연결합니다.
+upstream board_frontend { server FRONTEND_PRIVATE_IP:8080; }
+upstream board_intro { server INTRO_PRIVATE_IP:8081; }
+server {
+    listen 80;
+    server_name _;
+    client_max_body_size 10m;
+    location = / { proxy_pass http://board_intro; }
+    location = /html/index.html { proxy_pass http://board_intro; }
+    location /intro/ { proxy_pass http://board_intro; }
+    location / { proxy_pass http://board_frontend; }
+}
