@@ -1,5 +1,27 @@
 @import url('../../component/dialog/dialog.css');
 
+/* Minecraft Java의 유니코드 글꼴. 한글을 포함한 원본 글리프를 로컬 웹폰트로 제공합니다. */
+@font-face {
+    font-family: 'GNU Unifont';
+    src: url('/public/fonts/unifont-15.0.01.woff2') format('woff2');
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+html {
+    font-family: 'GNU Unifont', monospace;
+    line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea,
+input::file-selector-button {
+    font-family: inherit;
+}
+
 /*
  * 기능 : 전체 UI의 각진 모서리 통일
  * 설명 : 카드·버튼·입력창·프로필·팝업과 가상 요소, 파일 선택 버튼을 반경 0으로 표시합니다.

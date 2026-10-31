@@ -1,5 +1,7 @@
 import { loginUrl, safeReturnPath } from './authNavigation.js';
 
+export const DEFAULT_PROFILE_IMAGE = '/public/image/profile/villager.png';
+
 /*
  * 기능 : API 기본 주소 선택
  * 설명 : 서버가 주입한 실행 환경 설정을 우선 사용하고, 설정이 없으면 기본 API 경로를 반환합니다.

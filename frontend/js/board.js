@@ -2,6 +2,7 @@ import CommentItem from '../component/comment/comment.js';
 import Dialog from '../component/dialog/dialog.js';
 import { mountPublicHeader } from '../utils/pageHeader.js';
 import {
+    DEFAULT_PROFILE_IMAGE,
     serverSessionCheck,
     padTo2Digits,
     resolveImageUrl,
@@ -14,7 +15,6 @@ import {
     unlikePost,
 } from '../api/boardRequest.js';
 
-const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const MAX_COMMENT_LENGTH = 1000;
 const HTTP_NOT_AUTHORIZED = 401;
 const HTTP_OK = 200;

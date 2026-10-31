@@ -65,7 +65,7 @@ async page => {
         await page.goto(`${base}/html/modifyInfo.html`);
         await page.locator('#removeProfileButton').click();
         await page.getByRole('button',{name:'수정하기',exact:true}).click();
-        await page.waitForFunction(() => document.querySelector('#signupBtn')?.disabled && document.querySelector('#profilePreview')?.src.endsWith('/default.jpg'));
+        await page.waitForFunction(() => document.querySelector('#signupBtn')?.disabled && document.querySelector('#profilePreview')?.src.endsWith('/villager.png'));
         const session=await page.request.get(`${base}/server-api/v1/auth/check`);
         assert((await session.json()).data.profileImageUrl===null,'photo removal persisted');
         assert(errors.length===0,`page errors: ${errors.join(', ')}`);

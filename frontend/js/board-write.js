@@ -3,6 +3,7 @@ import { getSiteBoard } from '../api/siteRequest.js';
 import Header from '../component/header/header.js';
 import { loginUrl } from '../utils/authNavigation.js';
 import {
+    DEFAULT_PROFILE_IMAGE,
     authCheck,
     getQueryString,
     prependChild,
@@ -21,7 +22,6 @@ const editorReturnPath = window.location.pathname + window.location.search;
 const MAX_TITLE_LENGTH = 26;
 const MAX_CONTENT_LENGTH = 1500;
 
-const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 
 const submitButton = document.querySelector('#submit');
 const titleInput = document.querySelector('#title');

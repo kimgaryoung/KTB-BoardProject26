@@ -3,6 +3,7 @@ package com.example.boardproject;
 import com.example.boardproject.exception.BusinessException;
 import com.example.boardproject.service.S3ImageService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -14,6 +15,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.any;
 
+@Tag("unit")
 class S3ImageServiceTest {
     private final S3Client client = mock(S3Client.class);
     private final S3ImageService images = new S3ImageService(client);

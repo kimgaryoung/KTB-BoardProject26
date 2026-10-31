@@ -8,6 +8,7 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -15,15 +16,41 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-      - run: chmod +x gradlew && ./gradlew test --no-daemon
+      - run: chmod +x gradlew
+      - name: Backend unit tests
+        run: ./gradlew unitTest --no-daemon
+      - name: Backend integration tests
+        run: ./gradlew integrationTest --no-daemon
+      - name: Upload backend test reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            build/reports/tests/
+            build/test-results/
+          if-no-files-found: ignore
+          retention-days: 14
   frontend-and-pipeline:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm --prefix frontend ci && npm --prefix frontend test
+      - name: Install frontend dependencies
+        run: npm --prefix frontend ci
+      - name: Frontend unit tests
+        run: npm --prefix frontend run test:ci
+      - name: Upload frontend unit test reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-unit-test-reports
+          path: frontend/reports/unit-tests.xml
+          if-no-files-found: ignore
+          retention-days: 14
       - run: python3 -m unittest discover -s scripts/ci -p 'test_*.py'
       - run: bash -n scripts/ci/deploy.sh scripts/ci/deploy-remote.sh
       - name: Validate Actions syntax

@@ -1,6 +1,7 @@
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import {
+    DEFAULT_PROFILE_IMAGE,
     authCheckReverse,
     prependChild,
     validEmail,
@@ -288,7 +289,7 @@ const resetProfile = () => {
     profileFailed = false;
     signupData.profileImageUrl = undefined;
     document.querySelector('#profile').value = '';
-    profilePreview.src = '/public/image/profile/default.jpg';
+    profilePreview.src = DEFAULT_PROFILE_IMAGE;
     profileStatus.textContent = '선택 사항 · 최대 5MB';
     removeProfile.hidden = true;
     observeSignupData();

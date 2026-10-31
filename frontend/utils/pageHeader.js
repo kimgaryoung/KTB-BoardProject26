@@ -1,5 +1,5 @@
 import Header from '../component/header/header.js';
-import { prependChild, resolveImageUrl, serverSessionCheck } from './function.js';
+import { DEFAULT_PROFILE_IMAGE, prependChild, resolveImageUrl, serverSessionCheck } from './function.js';
 
 /*
  * 기능 : 공개 화면의 로그인 상태별 헤더 표시
@@ -13,7 +13,7 @@ export const mountPublicHeader = async ({ showHomeButton = true } = {}) => {
         if (response.ok) {
             const { data } = await response.json();
             viewer = data;
-            profileImage = resolveImageUrl(data.profileImageUrl, '/public/image/profile/default.jpg');
+            profileImage = resolveImageUrl(data.profileImageUrl, DEFAULT_PROFILE_IMAGE);
         }
     } catch { /* Discovery remains usable if the session check fails. */ }
     const header = Header('마크안에 사람이 살잖아', showHomeButton ? 2 : 0, profileImage);

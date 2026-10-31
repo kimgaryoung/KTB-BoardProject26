@@ -59,6 +59,27 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.register('unitTest', Test) {
+    description = 'Runs unit tests without starting Spring or a database.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'unit'
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs the remaining application and HTTP integration tests.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        excludeTags 'unit'
+    }
+    shouldRunAfter tasks.named('unitTest')
+}
+
 tasks.named('bootRun') {
     systemProperty 'spring.profiles.active', System.getProperty('spring.profiles.active', 'local')
 }

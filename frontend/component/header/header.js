@@ -1,4 +1,4 @@
-import { getServerUrl } from '../../utils/function.js';
+import { DEFAULT_PROFILE_IMAGE, getServerUrl } from '../../utils/function.js';
 
 /*
  * 기능 : 계정 메뉴와 로그아웃 연결
@@ -78,7 +78,7 @@ const Header = (
         profileElement.loading = 'eager';
         profileElement.src = profileImage;
         profileElement.addEventListener('error', () => {
-            const fallback = '/public/image/profile/default.jpg';
+            const fallback = DEFAULT_PROFILE_IMAGE;
             if (!profileElement.src.endsWith(fallback)) profileElement.src = fallback;
         });
 

@@ -2,6 +2,7 @@ import { checkNickname } from '../api/signupRequest.js';
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import {
+    DEFAULT_PROFILE_IMAGE,
     authCheck,
     prependChild,
     getServerUrl,
@@ -29,7 +30,6 @@ const changeData = {
     profileImageUrl: authData.data.profileImageUrl,
 };
 
-const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const HTTP_OK = 200;
 const profileHelp = document.querySelector('#profileStatus');
 let profileVersion = 0;

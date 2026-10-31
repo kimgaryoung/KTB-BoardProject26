@@ -1,4 +1,4 @@
-import { padTo2Digits, resolveImageUrl } from '../../utils/function.js';
+import { DEFAULT_PROFILE_IMAGE, padTo2Digits, resolveImageUrl } from '../../utils/function.js';
 
 /*
  * 기능 : 게시글 카드 텍스트 이스케이프
@@ -46,7 +46,6 @@ const BoardItem = (
 
     const formattedDate = `${year}-${padTo2Digits(month)}-${padTo2Digits(day)} ${padTo2Digits(hours)}:${padTo2Digits(minutes)}:${padTo2Digits(seconds)}`;
 
-    const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
     const profileImageUrl = resolveImageUrl(imgUrl, DEFAULT_PROFILE_IMAGE);
     const thumbnail = thumbnailUrl ? `<img class="postThumbnail" src="${escapeHtml(resolveImageUrl(thumbnailUrl))}" alt="${escapeHtml(title)} 사진" width="120" height="90" loading="lazy" decoding="async">` : '';
     return `

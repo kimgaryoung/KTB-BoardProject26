@@ -2,6 +2,7 @@ import { changePassword } from '../api/modifyPasswordRequest.js';
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import {
+    DEFAULT_PROFILE_IMAGE,
     authCheck,
     getServerUrl,
     prependChild,
@@ -11,7 +12,6 @@ import {
 
 const button = document.querySelector('#signupBtn');
 
-const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const HTTP_OK = 200;
 
 const dataResponse = await authCheck();
