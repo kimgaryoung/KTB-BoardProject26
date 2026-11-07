@@ -5,7 +5,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  id-token: write
 concurrency:
   group: board-deploy-staging
   cancel-in-progress: false
@@ -25,10 +24,11 @@ jobs:
           node-version: '22'
       - name: Frontend unit tests
         run: npm --prefix frontend test
-      - name: Use existing scoped deployment role
+      - name: Use existing scoped deployment credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::549303709378:role/board-github-staging-deploy
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
       - name: Confirm the target AWS account
         run: test "$(aws sts get-caller-identity --query Account --output text)" = 549303709378
