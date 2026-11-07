@@ -3,9 +3,9 @@ import { DEFAULT_PROFILE_IMAGE, prependChild, resolveImageUrl, serverSessionChec
 
 /*
  * 기능 : 공개 화면의 로그인 상태별 헤더 표시
- * 설명 : 세션에 따라 프로필·로그인 링크를 표시합니다. 첫 화면에서는 홈 이동 버튼을 생략하고 상세 화면에서는 유지합니다.
+ * 설명 : 세션에 따라 프로필·로그인 링크를 표시합니다. 첫 화면에서는 이동 버튼을 생략하고 다른 화면에서는 지정한 주소로 이동합니다.
  */
-export const mountPublicHeader = async ({ showHomeButton = true } = {}) => {
+export const mountPublicHeader = async ({ showHomeButton = true, backHref = '/' } = {}) => {
     let profileImage = null;
     let viewer = null;
     try {
@@ -16,7 +16,7 @@ export const mountPublicHeader = async ({ showHomeButton = true } = {}) => {
             profileImage = resolveImageUrl(data.profileImageUrl, DEFAULT_PROFILE_IMAGE);
         }
     } catch { /* Discovery remains usable if the session check fails. */ }
-    const header = Header('마크안에 사람이 살잖아', showHomeButton ? 2 : 0, profileImage);
+    const header = Header('마크안에 사람이 살잖아', showHomeButton ? 2 : 0, profileImage, backHref);
     if (!profileImage) {
         const login = document.createElement('a');
         login.href = '/html/login.html';

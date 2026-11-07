@@ -320,7 +320,7 @@ const inputComment = async () => {
  * 설명 : 로그인 상태별 댓글 입력을 설정하고 본문·댓글·커뮤니티 이동 링크를 표시합니다.
  */
 const init = async () => {
-    mountPublicHeader();
+    mountPublicHeader({ backHref: '/html/posts.html' });
     try {
         const session = await serverSessionCheck();
         const myInfo = session.ok ? (await session.json()).data : { userId: null, idx: null };

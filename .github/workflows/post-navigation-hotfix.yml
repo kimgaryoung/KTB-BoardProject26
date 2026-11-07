@@ -1,0 +1,93 @@
+name: Deploy post navigation fix
+on:
+  push:
+    branches: [fix/post-back-navigation-20261107]
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: board-deploy-staging
+  cancel-in-progress: false
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 20
+    env:
+      AWS_REGION: ap-southeast-2
+      DEPLOY_INSTANCE_ID: i-053e99cfa601437b9
+      BASE_FRONTEND_IMAGE: 549303709378.dkr.ecr.ap-southeast-2.amazonaws.com/scarlett-frontend@sha256:ced8bc5cea0cc16addaa625251b09d69cb6ebcd9836b2fe684316076e9127885
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Frontend unit tests
+        run: npm --prefix frontend test
+      - name: Use existing scoped deployment role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::549303709378:role/board-github-staging-deploy
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Confirm the target AWS account
+        run: test "$(aws sts get-caller-identity --query Account --output text)" = 549303709378
+      - name: Build and push the three-file frontend fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          registry=549303709378.dkr.ecr.ap-southeast-2.amazonaws.com
+          tag="post-back-${GITHUB_SHA:0:12}"
+          context="$RUNNER_TEMP/post-navigation"
+          mkdir -p "$context"
+          (
+            cd frontend
+            cp --parents component/header/header.js utils/pageHeader.js js/board.js "$context"
+          )
+          printf 'FROM %s\nWORKDIR /app\nCOPY --chown=node:node component/header/header.js ./component/header/header.js\nCOPY --chown=node:node utils/pageHeader.js ./utils/pageHeader.js\nCOPY --chown=node:node js/board.js ./js/board.js\n' "$BASE_FRONTEND_IMAGE" > "$context/Dockerfile"
+          aws ecr get-login-password | docker login --username AWS --password-stdin "$registry"
+          docker build --platform linux/amd64 --tag "$registry/scarlett-frontend:$tag" "$context"
+          docker push "$registry/scarlett-frontend:$tag"
+          digest=$(aws ecr describe-images --repository-name scarlett-frontend --image-ids "imageTag=$tag" --query 'imageDetails[0].imageDigest' --output text)
+          echo "IMAGE_REF=$registry/scarlett-frontend@$digest" >> "$GITHUB_ENV"
+      - name: Record immutable release
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          Path('release').mkdir(exist_ok=True)
+          Path('release/release.json').write_text(json.dumps({
+              'component': 'frontend', 'source_sha': os.environ['GITHUB_SHA'],
+              'image_ref': os.environ['IMAGE_REF'], 'base_image': os.environ['BASE_FRONTEND_IMAGE'],
+          }, indent=2))
+          PY
+      - name: Deploy through SSM with rollback
+        run: |
+          python3 - <<'PY'
+          import json,os,shlex,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts/ci')
+          import deploy_ssm
+          instance=os.environ['DEPLOY_INSTANCE_ID']
+          image=os.environ['IMAGE_REF']
+          payload=deploy_ssm.request(instance,'frontend',image,os.environ['AWS_REGION'],image.split('/')[0],'8080')
+          payload['Parameters']['commands'].insert(1,'export EXPECTED_PREVIOUS_IMAGE='+shlex.quote(os.environ['BASE_FRONTEND_IMAGE']))
+          command=deploy_ssm.send(payload)
+          Path('ssm-command.json').write_text(json.dumps({'command_id':command,'instance_id':instance,'image_ref':image},indent=2))
+          print('SSM command '+command,flush=True)
+          result=deploy_ssm.wait_for_command(lambda:deploy_ssm.invocation(command,instance))
+          print(result.get('StandardOutputContent','')[-4000:])
+          PY
+      - name: Verify public HTTPS endpoints
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-all-errors --connect-timeout 8 --max-time 20 --output /dev/null https://minecraftcommunity.scarlett-project.cloud/html/posts.html
+          curl --fail --silent --show-error --retry 3 --retry-all-errors --connect-timeout 8 --max-time 20 --output /dev/null https://minecraftcommunity.scarlett-project.cloud/server-api/v1/site/board
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: post-navigation-release
+          path: |
+            release/release.json
+            ssm-command.json
+          if-no-files-found: ignore
+          retention-days: 30

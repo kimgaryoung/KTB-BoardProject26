@@ -38,7 +38,7 @@ const headerDropdownMenu = () => {
 };
 
 // title : 헤더 타이틀
-// leftBtn: 헤더 좌측 기능. 0 : None , 1: back , 2 : index
+// leftBtn: 헤더 좌측 기능. 0 : None , 1: back , 2 : backHref (기본 홈)
 // rightBtn : 헤더 우측 기능. image 주소값 들어옴
 /*
  * 기능 : 공통 헤더 생성
@@ -48,6 +48,7 @@ const Header = (
     title,
     leftBtn = 0,
     profileImage = null,
+    backHref = '/',
 ) => {
     let leftBtnElement;
     let rightBtnElement;
@@ -63,7 +64,7 @@ const Header = (
         } else {
             leftBtnElement.addEventListener(
                 'click',
-                () => (location.href = '/'),
+                () => (location.href = backHref),
             );
         }
     }
